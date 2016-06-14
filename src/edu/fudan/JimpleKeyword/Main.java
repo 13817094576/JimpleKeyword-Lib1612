@@ -22,12 +22,10 @@ import soot.jimple.infoflow.android.data.AndroidMethod;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 public class Main 
-{	
-	private static KeywordList keywordList;
-	
+{		
 	private static void ShowUsage()
 	{
-		System.out.println("Usage: java -jar PluginStat.jar --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
+		System.out.println("Usage: java -jar JimpleKeyword.jar --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
 		System.out.println("This program is written and tested on Java 1.7");
 	}
 	
@@ -121,63 +119,7 @@ public class Main
 		InfoflowResults infoFlowResults = app.runInfoflow();
 	}
 	
-	/**
-	 
-	Find out the Jimple statments contains keywords in APK
-	by scanning the classes with FlowDroid
 
-	 */
-	private static List<String> findOutJimpleWithKeywords()
-	{
-		// Check assumptions
-		assert keywordList != null;
-		
-		List<String> jimpleWithKeywords = new ArrayList<String>();
-		
-		//
-		// Traverse the classes in APK
-		Iterator<SootClass> classIter = Scene.v().getClasses().iterator();
-		while (classIter.hasNext())
-		{
-			SootClass curClass = classIter.next();
-			
-			//
-			// Traverse the methods in a class
-			Iterator<SootMethod> methodIter = curClass.getMethods().iterator();
-			while (methodIter.hasNext())
-			{
-				SootMethod m = methodIter.next();
-				
-				// Construct active body for some method
-				if (!m.hasActiveBody() && m.isConcrete())
-				{
-					m.retrieveActiveBody();
-				}
-					
-				// Skip method without active body
-				if (!m.hasActiveBody())
-				{
-					continue;
-				}
-				
-				//
-				// Traverse the statements in a method
-				Iterator<Unit> unitIter = m.getActiveBody().getUnits().iterator();
-				while (unitIter.hasNext())
-				{
-					Unit curUnit = unitIter.next();
-					String curUnitInString = curUnit.toString();
-					
-					if (keywordList.hasKeyword(curUnitInString))
-					{
-						jimpleWithKeywords.add(curUnitInString);
-					}
-				}
-			}
-		}
-		
-		return jimpleWithKeywords;
-	}
 	
 	public static void main(String[] args) 
 	{
@@ -267,20 +209,31 @@ public class Main
 		
 		//
 		// Load keyword list
-		keywordList = new KeywordList(keywordListFileName);
+		KeywordList keywordList = new KeywordList(keywordListFileName);
 		
 		//
 		// Find out the Jimple statements contains keyword
-		List<String> jimpleWithKeywords = findOutJimpleWithKeywords();
+		KeywordInspector keywordInspector = new KeywordInspector(keywordList);
 		
 		//
-		// Output the list of plugins
+		// Output the list of Jimple statements with keywords
+		List<String> jimpleWithKeywords = keywordInspector.getJimpleWithKeywords();
 		System.out.println("Jimple with Keywords in APK >>>>>>>>>>>");
 		for (String curJimple : jimpleWithKeywords)
 		{
 			System.out.println(curJimple);
 		}
 		System.out.println("Jimple with Keywords in APK <<<<<<<<<<");
+		
+		//
+		// Output the list of keywords hit
+		Set<String> keywordsHit = keywordInspector.getKeywordsHit();
+		System.out.println("Keywords Hit >>>>>>>>>>");
+		for (String curKeyword : keywordsHit)
+		{
+			System.out.println(curKeyword);
+		}
+		System.out.println("Keywords Hit <<<<<<<<<<");
 		
 		// Exit normally
 	}

@@ -58,6 +58,15 @@ public class KeywordList
 					break;
 				}
 				
+				// Canonicalize the line
+				listLine = listLine.trim();
+				
+				// Skip some invalid or comment lines
+				if (listLine.isEmpty())
+				{
+					continue;
+				}
+				
 				// Convert keyword to lower case in order to ignore case
 				keywordList.add(listLine.toLowerCase());
 			}
@@ -76,6 +85,17 @@ public class KeywordList
 	 */
 	boolean hasKeyword(String text)
 	{
+		return figureOutKeyword(text) != null;
+	}
+	
+	/**
+	 
+		Specify which keyword is in given text.
+		If given text contains no keyword, null is returned.
+
+	 */
+	String figureOutKeyword(String text)
+	{
 		// Convert text to lower case to ignore case
 		// Keywords in keywordList has already converted to lower case
 		text = text.toLowerCase();
@@ -86,10 +106,11 @@ public class KeywordList
 			// Here we use contain instead of equal
 			if (text.contains(knownKeyword))
 			{
-				return true;
+				return knownKeyword;
 			}
 		}
 		
-		return false;
+		// Given text doesn't contain any known keyword
+		return null;
 	}
 }
