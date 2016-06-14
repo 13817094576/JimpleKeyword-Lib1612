@@ -6,11 +6,13 @@ import java.nio.file.FileSystemNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
+import soot.Unit;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.android.IMethodSpec;
@@ -21,9 +23,11 @@ import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 public class Main 
 {	
+	private static KeywordList keywordList;
+	
 	private static void ShowUsage()
 	{
-		System.out.println("Usage: java -jar PluginStat.jar --android-jar ANDROID.JAR APP.APK PLUGIN-LIST.TXT");
+		System.out.println("Usage: java -jar PluginStat.jar --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
 		System.out.println("This program is written and tested on Java 1.7");
 	}
 	
@@ -117,6 +121,64 @@ public class Main
 		InfoflowResults infoFlowResults = app.runInfoflow();
 	}
 	
+	/**
+	 
+	Find out the Jimple statments contains keywords in APK
+	by scanning the classes with FlowDroid
+
+	 */
+	private static List<String> findOutJimpleWithKeywords()
+	{
+		// Check assumptions
+		assert keywordList != null;
+		
+		List<String> jimpleWithKeywords = new ArrayList<String>();
+		
+		//
+		// Traverse the classes in APK
+		Iterator<SootClass> classIter = Scene.v().getClasses().iterator();
+		while (classIter.hasNext())
+		{
+			SootClass curClass = classIter.next();
+			
+			//
+			// Traverse the methods in a class
+			Iterator<SootMethod> methodIter = curClass.getMethods().iterator();
+			while (methodIter.hasNext())
+			{
+				SootMethod m = methodIter.next();
+				
+				// Construct active body for some method
+				if (!m.hasActiveBody() && m.isConcrete())
+				{
+					m.retrieveActiveBody();
+				}
+					
+				// Skip method without active body
+				if (!m.hasActiveBody())
+				{
+					continue;
+				}
+				
+				//
+				// Traverse the statements in a method
+				Iterator<Unit> unitIter = m.getActiveBody().getUnits().iterator();
+				while (unitIter.hasNext())
+				{
+					Unit curUnit = unitIter.next();
+					String curUnitInString = curUnit.toString();
+					
+					if (keywordList.hasKeyword(curUnitInString))
+					{
+						jimpleWithKeywords.add(curUnitInString);
+					}
+				}
+			}
+		}
+		
+		return jimpleWithKeywords;
+	}
+	
 	public static void main(String[] args) 
 	{
 		//
@@ -137,7 +199,7 @@ public class Main
 		
 		String apkFile = null;
 		String androidJar = null;
-		String pluginListFileName = null;
+		String keywordListFileName = null;
 		
 		// Get ANDROID.JAR and APP.APK
 		for (int i=0; i<args.length; i++)
@@ -154,7 +216,7 @@ public class Main
 			}
 			else if (args[i].endsWith(".txt"))
 			{
-				pluginListFileName = args[i];
+				keywordListFileName = args[i];
 			}
 		}
 		
@@ -171,11 +233,11 @@ public class Main
 			ShowUsage();
 			throw new IllegalArgumentException("ANDROID.JAR file parameter is invalid");
 		}
-		if (pluginListFileName == null)
+		if (keywordListFileName == null)
 		{
-			System.err.println("No PLUGIN-LIST.TXT file supplied\n");
+			System.err.println("No KEYWORD-LIST.TXT file supplied\n");
 			ShowUsage();
-			throw new IllegalArgumentException("PLUGIN-LIST.TXT file parameter is invalid");
+			throw new IllegalArgumentException("KEYWORD-LIST.TXT file parameter is invalid");
 		}
 		
 		// Check if parameters are valid
@@ -191,17 +253,34 @@ public class Main
 			System.err.println("ANDROID.JAR path doesn't exist: " + androidJar);
 			throw new FileSystemNotFoundException("ANDROID.JAR path doesn't exist");
 		}
-		File pluginListFile = new File(pluginListFileName);
-		if (!pluginListFile.exists())
+		File keywordListFile = new File(keywordListFileName);
+		if (!keywordListFile.exists())
 		{
-			System.err.println("PLUGIN-LIST.TXT path doesn't exist: " + pluginListFileName);
-			throw new FileSystemNotFoundException("PLUGIN-LIST.TXT path doesn't exist");
+			System.err.println("KEYWORD-LIST.TXT path doesn't exist: " + keywordListFileName);
+			throw new FileSystemNotFoundException("KEYWORD-LIST.TXT path doesn't exist");
 		}
 		
 		//
 		// Analyze APK with FlowDroid
 		// The analysis result of FlowDroid is stored in Scene class of Soot.
 		AnalyzeApkWithFlowDroid(androidJar, apkFile);
+		
+		//
+		// Load keyword list
+		keywordList = new KeywordList(keywordListFileName);
+		
+		//
+		// Find out the Jimple statements contains keyword
+		List<String> jimpleWithKeywords = findOutJimpleWithKeywords();
+		
+		//
+		// Output the list of plugins
+		System.out.println("Jimple with Keywords in APK >>>>>>>>>>>");
+		for (String curJimple : jimpleWithKeywords)
+		{
+			System.out.println(curJimple);
+		}
+		System.out.println("Jimple with Keywords in APK <<<<<<<<<<");
 		
 		// Exit normally
 	}
