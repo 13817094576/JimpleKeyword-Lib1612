@@ -21,6 +21,96 @@ class KeywordInspector {
 	private Set<String> keywordsHit;
 	
 	/**
+
+	 	Extract string constants in a given jimple statement
+	 	
+	 	If there is no string constants, an empty list is returned.
+
+	 */
+	private List<String> extractStringConst(String jimpleInString)
+	{
+		//
+		// Scan the Jimple statement in String
+		
+		int stringConstBegin = 0;
+		int stringConstEnd = 0;
+		List<String> stringConsts = new ArrayList<String>();
+		
+		char[] jimpleInCharArray = jimpleInString.toCharArray();
+		for (int i=0; i<jimpleInCharArray.length; i++)
+		{
+			//
+			// Double quote indicate either begin or end of a string constant
+			if (jimpleInCharArray[i] == '\"')
+			{
+				// Record the beginning of a string constant
+				if (stringConstBegin == 0)
+				{
+					stringConstBegin = i;
+				}
+				// This is an end of a string constant
+				else
+				{
+					stringConstEnd = i;
+					
+					// Extract the string constant
+					int stringConstLen = stringConstEnd - stringConstBegin + 1;
+					String stringConst = new String(jimpleInCharArray, stringConstBegin, stringConstLen);
+					
+					stringConsts.add(stringConst);
+				}
+			}
+			//
+			// Backslash indicates escape character
+			else if (jimpleInCharArray[i] == '\\')
+			{
+				// An \" escape sequence is encountered
+				if (jimpleInCharArray[i+1] == '\"')
+				{
+					// We should skip the escaped double quote char
+					i++;
+				}
+			}
+			else
+			{
+				// No special action is needed for other char.
+			}
+		}
+		
+		return stringConsts;
+	}
+	
+	/**
+	 
+		Figure out if given Jimple statement contains keyword we interested
+		Currently, we only focused on keyword in String constant.
+
+	 */
+	private String figureOutKeywordInJimple(String jimpleInString)
+	{
+		// We only interested in keywords in string constants.
+		List<String> stringConsts = extractStringConst(jimpleInString);
+		
+		//
+		// Check each string const
+		// CORNER CASE: when the list is empty, the code is still correct
+		for (String stringConst : stringConsts)
+		{
+			// Check if current string const contains keyword
+			String keywordInStringConst = keywordList.figureOutKeyword(stringConst);
+			if (keywordInStringConst != null)
+			{
+				// Current Jimple statement contains keyword
+				return keywordInStringConst;
+			}
+		}
+		
+		// None of the string consts in current Jimple statement
+		// contains keyword
+		return null;
+	}
+	
+	/**
 	 
 		Scanning the classes with FlowDroid
 		and find out the information we care.
@@ -73,7 +163,7 @@ class KeywordInspector {
 					String curUnitInString = curUnit.toString();
 					
 					// Check if current statement contains any known keyword
-					String keywordInUnit = keywordList.figureOutKeyword(curUnitInString);
+					String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
 					if (keywordInUnit != null)
 					{
 						// Record current Jimple statement
