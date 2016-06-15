@@ -15,7 +15,9 @@ class KeywordInspector {
 
 	private KeywordList keywordList;
 	
+	// We use List since Jimple statements doesn't seem to duplicate
 	private List<String> jimpleWithKeywords;
+	// We use Set to avoid duplicated keywords
 	private Set<String> keywordsHit;
 	
 	/**

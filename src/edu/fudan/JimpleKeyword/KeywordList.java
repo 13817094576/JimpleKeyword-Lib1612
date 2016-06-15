@@ -36,6 +36,35 @@ public class KeywordList
 	
 	/**
 	 
+		Canonicalize text line read from keyword list file.
+		If we should skip current line, null is returned.
+
+	 */
+	private String canonicalizeListLine(String listLine)
+	{
+		// Canonicalize the line
+		listLine = listLine.trim();
+		
+		// Is empty line?
+		if (listLine.isEmpty())
+		{
+			// Skip empty line
+			return null;
+		}
+		// Is comment line?
+		// Comment lines begin with '#'
+		if (listLine.charAt(0) == '#')
+		{
+			// Skip comment line
+			return null;
+		}
+		
+		// Return processed list line
+		return listLine;
+	}
+	
+	/**
+	 
 	 	Load the content of a keyword list file
 	 	and store the content to the class
 	 
@@ -58,11 +87,10 @@ public class KeywordList
 					break;
 				}
 				
-				// Canonicalize the line
-				listLine = listLine.trim();
-				
-				// Skip some invalid or comment lines
-				if (listLine.isEmpty())
+				// Canonicalize list line
+				// and skip lines we should ignore
+				listLine = canonicalizeListLine(listLine);
+				if (listLine == null)
 				{
 					continue;
 				}
