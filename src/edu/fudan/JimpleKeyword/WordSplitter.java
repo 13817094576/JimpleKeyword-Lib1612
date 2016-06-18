@@ -2,6 +2,7 @@ package edu.fudan.JimpleKeyword;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
@@ -12,16 +13,11 @@ import java.util.StringTokenizer;
  */
 class WordSplitter {
 	
-	String sentence;
+	private Set<String> dictForWordSplit;
 	
-	WordSplitter(String s)
+	WordSplitter(Set<String> dictForWordSplit)
 	{
-		//
-		// Initialize shared variables
-		sentence = s;
-
-		// Do words splitting
-		splitWords();
+		this.dictForWordSplit = dictForWordSplit;
 	}
 	
 	private List<String> splitWordsByDelimiter(String s)
@@ -208,12 +204,95 @@ class WordSplitter {
 		return words;
 	}
 	
-	private void splitWords()
+	/**
+	 
+		Find out the longest word given fragment is started with.		
+		
+		If the fragment isn't started with any word in the dictionary,
+		empty string is returned.
+
+	 */
+	private String longestPrefix(String fragment)
+	{
+		//
+		// Check assumptions
+		assert fragment != null;
+		
+		// If no prefix in dictionary found
+		// the default prefix is empty string
+		String longestPrefix = "";
+		
+		for (String wordInDict : dictForWordSplit)
+		{
+			if (fragment.startsWith(wordInDict))
+			{
+				if (wordInDict.length() > longestPrefix.length())
+				{
+					longestPrefix = wordInDict;
+				}
+			}
+		}
+		
+		return longestPrefix;
+	}
+	
+	private void splitWordsByDict(String fragment, List<String> wordsOut)
+	{
+		//
+		// Check assumptions
+		assert fragment != null;
+		assert wordsOut != null;
+		
+		//
+		// CORNER CASE: Empty string is ignored.
+		
+		while (fragment.length() > 0)
+		{
+			// Find out the longest prefix in current fragment
+			String longestPrefix = longestPrefix(fragment);
+			
+			if (longestPrefix.length() == 0)
+			{
+				// Fragment isn't start with a word in dictionary
+				// Don't split the fragment any more
+				wordsOut.add(fragment);
+				break;
+			}
+			else
+			{
+				//
+				// Fragment is start with a word in dictionary
+				
+				// Add this word to output list
+				wordsOut.add(longestPrefix);
+				
+				// Remove the prefix from current fragment
+				fragment = fragment.substring(longestPrefix.length());
+			}
+		}
+	}
+	
+	private List<String> splitWordsByDict(List<String> fragments)
+	{
+		List<String> words = new ArrayList<String>();
+		
+		for (String fragment : fragments)
+		{
+			//
+			// Split current fragment and add results to words list
+			splitWordsByDict(fragment, words);			
+		}
+		
+		return words;
+	}
+	
+	void splitWords(String sentence)
 	{
 		//
 		// Process sentence through several passes
 		List<String> words = splitWordsByDelimiter(sentence);
 		words = splitWordsByCase(words);
+		words = splitWordsByDict(words);
 		
 		//
 		// DEBUG
