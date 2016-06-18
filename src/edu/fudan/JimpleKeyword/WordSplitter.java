@@ -286,7 +286,7 @@ class WordSplitter {
 		return words;
 	}
 	
-	void splitWords(String sentence)
+	List<String> splitWords(String sentence)
 	{
 		//
 		// Process sentence through several passes
@@ -294,13 +294,6 @@ class WordSplitter {
 		words = splitWordsByCase(words);
 		words = splitWordsByDict(words);
 		
-		//
-		// DEBUG
-		for (String word : words)
-		{
-			System.out.print(word + ' ');
-		}
-		
-		System.out.println();
+		return words;
 	}
 }
