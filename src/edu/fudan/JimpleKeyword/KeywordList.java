@@ -9,6 +9,7 @@ import java.nio.file.FileSystemNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import soot.Scene;
@@ -32,7 +33,10 @@ import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
  */
 public class KeywordList 
 {
+	// Keyword list for Jimple keyword matching
 	private ArrayList<String> keywordList = new ArrayList<String>();
+	// Word list for sentence words splitting
+	private HashSet<String> wordsForSplitting = new HashSet<String>();
 	
 	/**
 	 
@@ -65,6 +69,40 @@ public class KeywordList
 	
 	/**
 	 
+		Read all text lines from a file in raw format
+
+	 */
+	private List<String> readAllLinesFromFile(String fileName)
+	{
+		List<String> lines = new ArrayList<String>();
+		
+		try 
+		{
+			FileInputStream fileInputStream = new FileInputStream(fileName);
+			DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+			
+			while (true)
+			{
+				String line = dataInputStream.readLine();
+				if (line == null)
+				{
+					break;
+				}
+				
+				// Record current line
+				lines.add(line);
+			}
+		} 
+		catch (Exception e) 
+		{
+			throw new RuntimeException("Unexpected IO error on "+ fileName, e);
+		}		
+		
+		return lines;
+	}
+	
+	/**
+	 
 	 	Load the content of a keyword list file
 	 	and store the content to the class
 	 
@@ -73,35 +111,32 @@ public class KeywordList
 	{
 		//
 		// Read content of keyword list file to array list in class
+		List<String> listLines = readAllLinesFromFile(fileName);
 		
-		try 
+		//
+		// Use the content of file to initialize variables
+		for (String listLine : listLines)
 		{
-			FileInputStream listFileInputStream = new FileInputStream(fileName);
-			DataInputStream listDataInputStream = new DataInputStream(listFileInputStream);
-			
-			while (true)
+			// Canonicalize list line
+			// and skip lines we should ignore
+			listLine = canonicalizeListLine(listLine);
+			if (listLine == null)
 			{
-				String listLine = listDataInputStream.readLine();
-				if (listLine == null)
-				{
-					break;
-				}
-				
-				// Canonicalize list line
-				// and skip lines we should ignore
-				listLine = canonicalizeListLine(listLine);
-				if (listLine == null)
-				{
-					continue;
-				}
-				
-				// Convert keyword to lower case in order to ignore case
-				keywordList.add(listLine.toLowerCase());
+				continue;
 			}
-		} 
-		catch (Exception e) 
-		{
-			throw new RuntimeException("Unexpected IO error on "+ fileName, e);
+			
+			// Convert keyword to lower case in order to ignore case
+			listLine = listLine.toLowerCase();
+			
+			// Use keyword directly for Jimple keyword matching
+			keywordList.add(listLine);
+			
+			// Use individual words in phrases for word splitting
+			String[] wordsInCurLine = listLine.split(" ");
+			for (String wordInCurLine : wordsInCurLine)
+			{
+				wordsForSplitting.add(wordInCurLine);
+			}
 		}
 	}
 
@@ -140,5 +175,10 @@ public class KeywordList
 		
 		// Given text doesn't contain any known keyword
 		return null;
+	}
+	
+	Set<String> getDictForWordSplit()
+	{
+		return wordsForSplitting;
 	}
 }
