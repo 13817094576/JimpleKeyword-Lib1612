@@ -17,6 +17,7 @@ class KeywordInspector {
 	// Some utilities for keyword inspection
 	private KeywordList keywordList;
 	private WordSplitter wordSplitter;
+	private PorterStemmer porterStemmer;
 	
 	// We use List since Jimple statements doesn't seem to duplicate
 	private List<String> jimpleWithKeywords;
@@ -95,6 +96,26 @@ class KeywordInspector {
 		return outputBuilder.toString();
 	}
 	
+	private String canonicalizeStringConst(String stringConst)
+	{
+		//
+		// Process string const with words splitting
+		List<String> wordsInStrConst = wordSplitter.splitWords(stringConst);
+		
+		//
+		// Use Porter Stemmer to do stemming
+		for (int i=0; i<wordsInStrConst.size(); i++)
+		{
+			String stemmedWord = porterStemmer.stripAffixes(wordsInStrConst.get(i));
+			wordsInStrConst.set(i, stemmedWord);
+		}
+		
+		// Output the process string constant
+		String processedStrConst = joinString(wordsInStrConst, ' ');
+		
+		return processedStrConst;
+	}
+	
 	/**
 	 
 		Figure out if given Jimple statement contains keyword we interested
@@ -112,12 +133,11 @@ class KeywordInspector {
 		for (String stringConst : stringConsts)
 		{
 			//
-			// Process string const with word splitting, stemming, etc.
-			List<String> wordsInStrConst = wordSplitter.splitWords(stringConst);
-			String processedStrConst = joinString(wordsInStrConst, ' ');
+			// Canonicalize string const with word splitting, stemming, etc.
+			String canonicalizedStrConst = canonicalizeStringConst(stringConst);
 			
 			// Check if current string const contains keyword
-			String keywordInStringConst = keywordList.figureOutKeyword(processedStrConst);
+			String keywordInStringConst = keywordList.figureOutKeyword(canonicalizedStrConst);
 			if (keywordInStringConst != null)
 			{
 				// Current Jimple statement contains keyword
@@ -203,6 +223,7 @@ class KeywordInspector {
 		// Initialize private variables
 		keywordList = list;
 		wordSplitter = new WordSplitter(keywordList.getDictForWordSplit());
+		porterStemmer = new PorterStemmer();
 		
 		//
 		// Inspect Jimple statements
