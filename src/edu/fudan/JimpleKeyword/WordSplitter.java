@@ -22,7 +22,13 @@ class WordSplitter {
 	
 	private List<String> splitWordsByDelimiter(String s)
 	{
-		StringTokenizer tokenizer = new StringTokenizer(s, " 1234567890-=[]\\`;',./!#$%^&*()_+{}|~:\"<>?\n\r\t");
+		//
+		// Here we exclude the following symbols as delimiter:
+		//
+		// &: In a URL, '&' is used for seperating different key value pair.
+		//    e.g. ...=value&key=...
+		
+		StringTokenizer tokenizer = new StringTokenizer(s, " 1234567890-=[]\\`;',./!#$%^*()_+{}|~:\"<>?\n\r\t");
 		List<String> words = new ArrayList<String>();
 		while (tokenizer.hasMoreTokens())
 		{
