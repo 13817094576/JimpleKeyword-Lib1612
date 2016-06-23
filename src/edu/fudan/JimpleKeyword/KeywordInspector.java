@@ -192,7 +192,7 @@ class KeywordInspector {
 		if (Config.recordJimpleUsingHashMap)
 		{
 			if (curUnitInString.contains("java.util.HashMap")
-				&& (curUnitInString.contains("put") || curUnitInString.contains("get")))
+				&& (curUnitInString.contains("put(") || curUnitInString.contains("get(")))
 			{
 				jimpleUsingHashMap.add(curUnitInString);
 			}
@@ -219,9 +219,7 @@ class KeywordInspector {
 	/**
 	 
 		Scanning the classes with FlowDroid
-		and find out the information we care.
-		It finds out the Jimple statements with keywords
-		and keywords hit.
+		and record the information we care.
 
 	 */
 	private void scanJimple()

@@ -69,43 +69,6 @@ public class KeywordList
 	
 	/**
 	 
-		Read all text lines from a file in raw format
-
-	 */
-	private List<String> readAllLinesFromFile(String fileName)
-	{
-		List<String> lines = new ArrayList<String>();
-		
-		//
-		// Here we leave parameter validation to InputStream class
-		
-		try 
-		{
-			FileInputStream fileInputStream = new FileInputStream(fileName);
-			DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-			
-			while (true)
-			{
-				String line = dataInputStream.readLine();
-				if (line == null)
-				{
-					break;
-				}
-				
-				// Record current line
-				lines.add(line);
-			}
-		} 
-		catch (Exception e) 
-		{
-			throw new RuntimeException("Unexpected IO error on "+ fileName, e);
-		}		
-		
-		return lines;
-	}
-	
-	/**
-	 
 	 	Load the content of a keyword list file
 	 	and store the content to the class
 	 
@@ -114,7 +77,7 @@ public class KeywordList
 	{
 		//
 		// Read content of keyword list file to array list in class
-		List<String> listLines = readAllLinesFromFile(fileName);
+		List<String> listLines = FileUtil.readAllLinesFromFile(fileName);
 		
 		//
 		// Use the content of file to initialize variables
