@@ -112,3 +112,23 @@
 <android.database.Cursor: java.lang.String getString(int)> 
 <android.database.sqlite.SQLiteDatabase: android.database.Cursor query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String)> 
 <android.database.sqlite.SQLiteDatabase: android.database.Cursor query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)> 
+
+contentProvider OnCreate()
+<org.xml.sax.Attributes: java.lang.String getValue(java.lang.String)>
+<android.database.Cursor: int getColumnIndexOrThrow(java.lang.String)>
+<java.net.HttpURLConnection: void setRequestProperty(java.lang.String,java.lang.String)><org.apache.http.client.methods.HttpPost: void addHeader(java.lang.String,java.lang.String)>
+<android.net.Uri: java.lang.String getQueryParameter(java.lang.String)>
+<android.provider.Settings$Secure: java.lang.String getString(android.content.ContentResolver,java.lang.String)>
+<org.json.JSONObject: java.lang.String optString(java.lang.String)>
+<android.os.Bundle: java.lang.String getString(java.lang.String)>
+<com.mongodb.BasicDBObject: java.lang.Object put(java.lang.String,java.lang.Object)>
+<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>
+<org.json.JSONObject: java.lang.String getString(java.lang.String)>
+<org.json.JSONObject: boolean has(java.lang.String)>
+<org.apache.http.message.BasicNameValuePair: void <init>(java.lang.String,java.lang.String)>
+<android.content.SharedPreferences$Editor: android.content.SharedPreferences$Editor putString(java.lang.String,java.lang.String)>
+<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>
+<java.util.Hashtable: java.lang.Object get(java.lang.Object)>
+<java.util.regex.Pattern: java.util.regex.Pattern compile(java.lang.String)>
+<java.util.List: boolean add(java.lang.Object)>
+<java.util.Map: java.lang.Object put(java.lang.Object,java.lang.Object)>
