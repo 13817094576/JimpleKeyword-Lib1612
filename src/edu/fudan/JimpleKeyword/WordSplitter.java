@@ -224,8 +224,9 @@ class WordSplitter {
 		// Check assumptions
 		assert fragment != null;
 		
-		// If no prefix in dictionary found
-		// the default prefix is empty string
+		// The default prefix is empty string
+		// We use empty string as default value
+		// since it can facilitate length comparison
 		String longestPrefix = "";
 		
 		for (String wordInDict : dictForWordSplit)
@@ -296,10 +297,10 @@ class WordSplitter {
 	{
 		//
 		// Process sentence through several passes
-		List<String> words = splitWordsByDelimiter(sentence);
-		words = splitWordsByCase(words);
-		words = splitWordsByDict(words);
+		List<String> fragments = splitWordsByDelimiter(sentence);
+		fragments = splitWordsByCase(fragments);
+		fragments = splitWordsByDict(fragments);
 		
-		return words;
+		return fragments;
 	}
 }

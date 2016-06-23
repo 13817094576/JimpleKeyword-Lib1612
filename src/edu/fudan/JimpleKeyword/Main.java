@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import soot.Scene;
@@ -234,6 +235,23 @@ public class Main
 			System.out.println(curKeyword);
 		}
 		System.out.println("Keywords Hit <<<<<<<<<<");
+		
+		//
+		// Output the list of keywords in package
+		Map<String, String> keywordsInPackage = keywordInspector.getKeywordsInPackage();
+		System.out.println("Keywords in Package >>>>>>>>>>");
+		
+		Iterator<Map.Entry<String, String>> keywordsInPackageIter = 
+				keywordsInPackage.entrySet().iterator();
+		
+		while (keywordsInPackageIter.hasNext())
+		{
+			Map.Entry<String, String> keywordsInPackageEntry = keywordsInPackageIter.next();
+			
+			System.out.println(keywordsInPackageEntry.getKey() + ',' + keywordsInPackageEntry.getValue());
+		}
+		
+		System.out.println("Keywords in Package <<<<<<<<<<");
 		
 		// Exit normally
 	}

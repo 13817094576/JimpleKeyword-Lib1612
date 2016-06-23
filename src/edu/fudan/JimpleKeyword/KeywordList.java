@@ -76,6 +76,9 @@ public class KeywordList
 	{
 		List<String> lines = new ArrayList<String>();
 		
+		//
+		// Here we leave parameter validation to InputStream class
+		
 		try 
 		{
 			FileInputStream fileInputStream = new FileInputStream(fileName);

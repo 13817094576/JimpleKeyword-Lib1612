@@ -1,15 +1,27 @@
 package edu.fudan.JimpleKeyword;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.InvokeStmt;
+
+/**
+
+	This class contains code for inspecting keywords in Jimple statement.
+	
+	If the Jimple statement is the one we interested in,
+	related information will be recorded for later use.
+
+ */
 
 class KeywordInspector {
 
@@ -19,10 +31,15 @@ class KeywordInspector {
 	private WordSplitter wordSplitter;
 	private PorterStemmer porterStemmer;
 	
+	//
+	// Output statistic information
+	
 	// We use List since Jimple statements doesn't seem to duplicate
 	private List<String> jimpleWithKeywords;
 	// We use Set to avoid duplicated keywords
 	private Set<String> keywordsHit;
+	// We use Map to avoid duplicated keywords
+	private Map<String, String> keywordsInPackage;
 	
 	/**
 
@@ -40,12 +57,11 @@ class KeywordInspector {
 		int stringConstEnd = 0;
 		List<String> stringConsts = new ArrayList<String>();
 		
-		char[] jimpleInCharArray = jimpleInString.toCharArray();
-		for (int i=0; i<jimpleInCharArray.length; i++)
+		for (int i=0; i<jimpleInString.length(); i++)
 		{
 			//
 			// Double quote indicate either begin or end of a string constant
-			if (jimpleInCharArray[i] == '\"')
+			if (jimpleInString.charAt(i) == '\"')
 			{
 				// Record the beginning of a string constant
 				if (stringConstBegin == 0)
@@ -58,18 +74,17 @@ class KeywordInspector {
 					stringConstEnd = i;
 					
 					// Extract the string constant
-					int stringConstLen = stringConstEnd - stringConstBegin + 1;
-					String stringConst = new String(jimpleInCharArray, stringConstBegin, stringConstLen);
+					String stringConst = jimpleInString.substring(stringConstBegin, stringConstEnd);
 					
 					stringConsts.add(stringConst);
 				}
 			}
 			//
 			// Backslash indicates escape character
-			else if (jimpleInCharArray[i] == '\\')
+			else if (jimpleInString.charAt(i) == '\\')
 			{
 				// An \" escape sequence is encountered
-				if (jimpleInCharArray[i+1] == '\"')
+				if (jimpleInString.charAt(i+1) == '\"')
 				{
 					// We should skip the escaped double quote char
 					i++;
@@ -152,13 +167,51 @@ class KeywordInspector {
 	
 	/**
 	 
+		Inspect given Jimple statement
+		and record relating information if
+		the statement is the one we interested in
+
+	 */
+	private void inspectJimpleStatement(Unit curUnit, SootClass curClass)
+	{		
+		//
+		// Currently we only interested in Jimple statement
+		// which invokes certain API
+		if (!(curUnit instanceof InvokeStmt))
+		{
+			// Skip non-invoke Jimple statement
+			return;
+		}
+		
+		String curUnitInString = curUnit.toString();
+		
+		// Check if current statement contains any known keyword
+		String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
+		if (keywordInUnit != null)
+		{
+			// Record current Jimple statement
+			jimpleWithKeywords.add(curUnitInString);
+			
+			// Record current keyword
+			keywordsHit.add(keywordInUnit);
+			
+			//
+			// Record the keywords and its corresponding package
+			// Here we record package name as key
+			// since a keyword may appears in multiple packages
+			keywordsInPackage.put(curClass.getPackageName(), keywordInUnit);
+		}		
+	}
+	
+	/**
+	 
 		Scanning the classes with FlowDroid
 		and find out the information we care.
 		It finds out the Jimple statements with keywords
 		and keywords hit.
 
 	 */
-	private void processJimple()
+	private void scanJimple()
 	{
 		//
 		// Check assumptions
@@ -200,18 +253,10 @@ class KeywordInspector {
 				while (unitIter.hasNext())
 				{
 					Unit curUnit = unitIter.next();
-					String curUnitInString = curUnit.toString();
-					
-					// Check if current statement contains any known keyword
-					String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
-					if (keywordInUnit != null)
-					{
-						// Record current Jimple statement
-						jimpleWithKeywords.add(curUnitInString);
-						
-						// Record current keyword
-						keywordsHit.add(keywordInUnit);
-					}
+
+					// Inspect current Jimple statement
+					// and recording relating info if we interested in
+					inspectJimpleStatement(curUnit, curClass);
 				}
 			}
 		}
@@ -220,15 +265,23 @@ class KeywordInspector {
 	KeywordInspector(KeywordList list)
 	{
 		//
-		// Initialize private variables
+		// Initialize utilities
 		keywordList = list;
 		wordSplitter = new WordSplitter(keywordList.getDictForWordSplit());
 		porterStemmer = new PorterStemmer();
 		
 		//
-		// Inspect Jimple statements
-		processJimple();
+		// Initialize output information variables
+		keywordsInPackage = new HashMap<String, String>();
+		
+		//
+		// Scan Jimple statements
+		// and record the information we interested in
+		scanJimple();
 	}
+	
+	//
+	// Output information access methods
 	
 	List<String> getJimpleWithKeywords()
 	{
@@ -238,5 +291,10 @@ class KeywordInspector {
 	Set<String> getKeywordsHit()
 	{
 		return keywordsHit;
+	}
+	
+	Map<String, String> getKeywordsInPackage()
+	{
+		return keywordsInPackage;
 	}
 }
