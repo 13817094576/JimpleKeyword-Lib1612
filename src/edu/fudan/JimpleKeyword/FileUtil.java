@@ -5,6 +5,12 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+
+	This file contains some utility functions 
+	for file operations
+
+ */
 class FileUtil 
 {
 	/**

@@ -28,6 +28,7 @@ class KeywordInspector {
 	//
 	// Some utilities for keyword inspection
 	private KeywordList keywordList;
+	private InterestedApiList interestedApiList;
 	private WordSplitter wordSplitter;
 	private PorterStemmer porterStemmer;
 	
@@ -188,6 +189,18 @@ class KeywordInspector {
 		String curUnitInString = curUnit.toString();
 		
 		//
+		// Check if current Jimple statement invokes
+		// API we interested in
+		if (Config.interestedApiOnly)
+		{
+			if (!interestedApiList.containInterestedApi(curUnitInString))
+			{
+				// Skip Jimple statement that doesn't contain interested API
+				return;
+			}
+		}
+		
+		//
 		// Check if current statement uses HashMap class
 		if (Config.recordJimpleUsingHashMap)
 		{
@@ -269,11 +282,12 @@ class KeywordInspector {
 		}
 	}
 	
-	KeywordInspector(KeywordList list)
+	KeywordInspector(KeywordList keywordList, InterestedApiList interestedApiList)
 	{
 		//
 		// Initialize utilities
-		keywordList = list;
+		this.keywordList = keywordList;
+		this.interestedApiList = interestedApiList;
 		wordSplitter = new WordSplitter(keywordList.getDictForWordSplit());
 		porterStemmer = new PorterStemmer();
 		

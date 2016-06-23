@@ -3,17 +3,12 @@ package edu.fudan.JimpleKeyword;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemNotFoundException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import soot.Scene;
-import soot.SootClass;
-import soot.SootMethod;
-import soot.Unit;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.android.IMethodSpec;
@@ -29,7 +24,8 @@ public class Main
 		System.out.println("Usage: java -jar JimpleKeyword.jar [options] --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
 		System.out.println("This program is written and tested on Java 1.7");
 		
-		System.out.println("\n-m	Record and print Jimple statements using HashMap");
+		System.out.println("\n-m\tRecord and print Jimple statements using HashMap");
+		System.out.println("-a\tDisable API filtering feature, inspect Jimple statement regardless which API it invokes");
 	}
 	
 	/**
@@ -167,6 +163,10 @@ public class Main
 			{
 				Config.recordJimpleUsingHashMap = true;
 			}
+			else if (args[i].equals("-a"))
+			{
+				Config.interestedApiOnly = false;
+			}
 		}
 		
 		// Check if some parameters not supplied
@@ -219,8 +219,32 @@ public class Main
 		KeywordList keywordList = new KeywordList(keywordListFileName);
 		
 		//
+		// Load interested API list
+		InterestedApiList interestedApiList = null;
+		if (Config.interestedApiOnly)
+		{
+			//
+			// Check if InterestedAPIs.txt exists
+			File interestedApiListFile = new File(Config.CONFIG_FILE_INTERESTED_API);
+			if (interestedApiListFile.exists())
+			{
+				interestedApiList = new InterestedApiList();
+			}
+			else
+			{
+				// Interested API list doesn't exist, 
+				// Turn off Config.interestedApiOnly switch
+				Config.interestedApiOnly = false;
+				
+				// Print warning message
+				System.err.println("[WARN] Interested API list is missing, API filtering is disabled: "
+									+ Config.CONFIG_FILE_INTERESTED_API);
+			}
+		}
+		
+		//
 		// Find out the Jimple statements contains keyword
-		KeywordInspector keywordInspector = new KeywordInspector(keywordList);
+		KeywordInspector keywordInspector = new KeywordInspector(keywordList, interestedApiList);
 		
 		//
 		// Output the list of Jimple statements with keywords
