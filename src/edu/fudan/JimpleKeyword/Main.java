@@ -218,32 +218,8 @@ public class Main
 		KeywordList keywordList = new KeywordList(keywordListFileName);
 		
 		//
-		// Load interested API list
-		InterestedApiList interestedApiList = null;
-		if (Config.interestedApiOnly)
-		{
-			//
-			// Check if InterestedAPIs.txt exists
-			File interestedApiListFile = new File(Config.CONFIG_FILE_INTERESTED_API);
-			if (interestedApiListFile.exists())
-			{
-				interestedApiList = new InterestedApiList();
-			}
-			else
-			{
-				// Interested API list doesn't exist, 
-				// Turn off Config.interestedApiOnly switch
-				Config.interestedApiOnly = false;
-				
-				// Print warning message
-				System.err.println("[WARN] Interested API list is missing, API filtering is disabled: "
-									+ Config.CONFIG_FILE_INTERESTED_API);
-			}
-		}
-		
-		//
 		// Find out the Jimple statements contains keyword
-		KeywordInspector keywordInspector = new KeywordInspector(keywordList, interestedApiList);
+		KeywordInspector keywordInspector = new KeywordInspector(keywordList);
 		
 		//
 		// Output the list of Jimple statements with keywords

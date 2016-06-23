@@ -1,5 +1,6 @@
 package edu.fudan.JimpleKeyword;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ class KeywordInspector
 	private Set<String> keywordsHit;
 	// We use Set to avoid duplicated <package, keyword> pair
 	private Set<String> keywordsInPackage;
-	
+	// Jimple doesn't seem to duplicate
 	private List<String> jimpleUsingHashMap;
 	
 	/**
@@ -286,12 +287,56 @@ class KeywordInspector
 		}
 	}
 	
-	KeywordInspector(KeywordList keywordList, InterestedApiList interestedApiList)
+	/**
+
+		Initialize InterestedApiList class instance.
+		
+		If Config.interestedApiOnly is turned off, or 
+		config file doesn't exist, null is returned.
+
+	 */
+	private InterestedApiList initInterestedApiList()
 	{
+		if (Config.interestedApiOnly)
+		{
+			//
+			// Check if InterestedAPIs.txt exists
+			File interestedApiListFile = new File(Config.CONFIG_FILE_INTERESTED_API);
+			if (interestedApiListFile.exists())
+			{
+				// Return initialized InterestedApiList instance
+				return new InterestedApiList();
+			}
+			else
+			{
+				// Interested API list doesn't exist, 
+				// Turn off Config.interestedApiOnly switch
+				Config.interestedApiOnly = false;
+				
+				// Print warning message
+				System.err.println("[WARN] Interested API list is missing, API filtering is disabled: "
+									+ Config.CONFIG_FILE_INTERESTED_API);
+				
+				return null;
+			}
+		}
+		else
+		{
+			// Config.interestedApiOnly switch is turned off
+			return null;
+		}
+	}
+	
+	KeywordInspector(KeywordList keywordList)
+	{
+		
+		//
+		// Initialize data list for Jimple inspection
+		this.keywordList = keywordList;
+		interestedApiList = initInterestedApiList();
+
 		//
 		// Initialize utilities
-		this.keywordList = keywordList;
-		this.interestedApiList = interestedApiList;
 		wordSplitter = new WordSplitter(keywordList.getDictForWordSplit());
 		porterStemmer = new PorterStemmer();
 		
