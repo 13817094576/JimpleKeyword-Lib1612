@@ -26,8 +26,10 @@ public class Main
 {		
 	private static void ShowUsage()
 	{
-		System.out.println("Usage: java -jar JimpleKeyword.jar --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
+		System.out.println("Usage: java -jar JimpleKeyword.jar [options] --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
 		System.out.println("This program is written and tested on Java 1.7");
+		
+		System.out.println("\n-m	Record and print Jimple statements using HashMap");
 	}
 	
 	/**
@@ -161,6 +163,10 @@ public class Main
 			{
 				keywordListFileName = args[i];
 			}
+			else if (args[i].equals("-m"))
+			{
+				Config.recordJimpleUsingHashMap = true;
+			}
 		}
 		
 		// Check if some parameters not supplied
@@ -252,6 +258,19 @@ public class Main
 		}
 		
 		System.out.println("Keywords in Package <<<<<<<<<<");
+		
+		//
+		// Output Jimple statements using HashMap class
+		if (Config.recordJimpleUsingHashMap)
+		{
+			List<String> jimpleUsingHashMap = keywordInspector.getJimpleUsingHashMap();
+			System.out.println("Jimple using HashMap >>>>>>>>>>");
+			for (String curJimpleUsingHashMap : jimpleUsingHashMap)
+			{
+				System.out.println(curJimpleUsingHashMap);
+			}
+			System.out.println("Jimple using HashMap <<<<<<<<<<");			
+		}
 		
 		// Exit normally
 	}

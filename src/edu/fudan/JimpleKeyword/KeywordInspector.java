@@ -41,6 +41,8 @@ class KeywordInspector {
 	// We use Map to avoid duplicated keywords
 	private Map<String, String> keywordsInPackage;
 	
+	private List<String> jimpleUsingHashMap;
+	
 	/**
 
 	 	Extract string constants in a given jimple statement
@@ -185,6 +187,17 @@ class KeywordInspector {
 		
 		String curUnitInString = curUnit.toString();
 		
+		//
+		// Check if current statement uses HashMap class
+		if (Config.recordJimpleUsingHashMap)
+		{
+			if (curUnitInString.contains("java.util.HashMap")
+				&& (curUnitInString.contains("put") || curUnitInString.contains("get")))
+			{
+				jimpleUsingHashMap.add(curUnitInString);
+			}
+		}
+		
 		// Check if current statement contains any known keyword
 		String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
 		if (keywordInUnit != null)
@@ -215,11 +228,7 @@ class KeywordInspector {
 	{
 		//
 		// Check assumptions
-		assert keywordList != null;
-		
-		// Initialize variables
-		jimpleWithKeywords = new ArrayList<String>();
-		keywordsHit = new HashSet<String>();
+		assert keywordList != null;		
 		
 		//
 		// Traverse the classes in APK
@@ -273,6 +282,9 @@ class KeywordInspector {
 		//
 		// Initialize output information variables
 		keywordsInPackage = new HashMap<String, String>();
+		jimpleWithKeywords = new ArrayList<String>();
+		keywordsHit = new HashSet<String>();
+		jimpleUsingHashMap = new ArrayList<String>();
 		
 		//
 		// Scan Jimple statements
@@ -296,5 +308,10 @@ class KeywordInspector {
 	Map<String, String> getKeywordsInPackage()
 	{
 		return keywordsInPackage;
+	}
+	
+	List<String> getJimpleUsingHashMap()
+	{
+		return jimpleUsingHashMap;
 	}
 }

@@ -3,9 +3,13 @@ package edu.fudan.JimpleKeyword;
 public class Config 
 {
 	//
-	// Program config
+	// FlowDroid config files
 	public static final String CONFIG_FILE_TAINT_WRAPPER = "EasyTaintWrapperSource.txt";
 	public static final String CONFIG_FILE_ANDROID_CALLBACK = "AndroidCallbacks.txt";
+	
+	//
+	// Program switch
+	public static boolean recordJimpleUsingHashMap;
 	
 	//
 	// Program exit status
