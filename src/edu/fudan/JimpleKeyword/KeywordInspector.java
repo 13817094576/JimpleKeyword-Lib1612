@@ -23,12 +23,16 @@ import soot.jimple.InvokeStmt;
 
  */
 
-class KeywordInspector {
+class KeywordInspector 
+{
 
 	//
-	// Some utilities for keyword inspection
+	// Data list for Jimple statement inspection
 	private KeywordList keywordList;
 	private InterestedApiList interestedApiList;
+	
+	//
+	// Some utilities for keyword inspection
 	private WordSplitter wordSplitter;
 	private PorterStemmer porterStemmer;
 	
@@ -39,8 +43,8 @@ class KeywordInspector {
 	private List<String> jimpleWithKeywords;
 	// We use Set to avoid duplicated keywords
 	private Set<String> keywordsHit;
-	// We use Map to avoid duplicated keywords
-	private Map<String, String> keywordsInPackage;
+	// We use Set to avoid duplicated <package, keyword> pair
+	private Set<String> keywordsInPackage;
 	
 	private List<String> jimpleUsingHashMap;
 	
@@ -225,7 +229,7 @@ class KeywordInspector {
 			// Record the keywords and its corresponding package
 			// Here we record package name as key
 			// since a keyword may appears in multiple packages
-			keywordsInPackage.put(curClass.getPackageName(), keywordInUnit);
+			keywordsInPackage.add(curClass.getPackageName() + ',' + keywordInUnit);
 		}		
 	}
 	
@@ -293,7 +297,7 @@ class KeywordInspector {
 		
 		//
 		// Initialize output information variables
-		keywordsInPackage = new HashMap<String, String>();
+		keywordsInPackage = new HashSet<String>();
 		jimpleWithKeywords = new ArrayList<String>();
 		keywordsHit = new HashSet<String>();
 		jimpleUsingHashMap = new ArrayList<String>();
@@ -317,7 +321,7 @@ class KeywordInspector {
 		return keywordsHit;
 	}
 	
-	Map<String, String> getKeywordsInPackage()
+	Set<String> getKeywordsInPackage()
 	{
 		return keywordsInPackage;
 	}

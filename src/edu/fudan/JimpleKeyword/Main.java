@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemNotFoundException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import soot.jimple.infoflow.InfoflowResults;
@@ -148,6 +146,7 @@ public class Main
 			if (args[i].equals("--android-jar")) 
 			{
 				// Get the path of ANDROID.JAR
+				// and skip next argument
 				i++;
 				androidJar = args[i];
 			}
@@ -268,19 +267,12 @@ public class Main
 		
 		//
 		// Output the list of keywords in package
-		Map<String, String> keywordsInPackage = keywordInspector.getKeywordsInPackage();
+		Set<String> keywordsInPackage = keywordInspector.getKeywordsInPackage();
 		System.out.println("Keywords in Package >>>>>>>>>>");
-		
-		Iterator<Map.Entry<String, String>> keywordsInPackageIter = 
-				keywordsInPackage.entrySet().iterator();
-		
-		while (keywordsInPackageIter.hasNext())
+		for (String curKeywordsInPackage : keywordsInPackage)
 		{
-			Map.Entry<String, String> keywordsInPackageEntry = keywordsInPackageIter.next();
-			
-			System.out.println(keywordsInPackageEntry.getKey() + ',' + keywordsInPackageEntry.getValue());
+			System.out.println(curKeywordsInPackage);
 		}
-		
 		System.out.println("Keywords in Package <<<<<<<<<<");
 		
 		//
