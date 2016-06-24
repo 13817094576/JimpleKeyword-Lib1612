@@ -82,9 +82,14 @@ class KeywordInspector
 					stringConstEnd = i;
 					
 					// Extract the string constant
-					String stringConst = jimpleInString.substring(stringConstBegin, stringConstEnd);
+					// Here we use begin+1 to skip to leading '\"'
+					// The trailing '\"' is excluded by String.substring method
+					String stringConst = jimpleInString.substring(stringConstBegin + 1, stringConstEnd);
 					
 					stringConsts.add(stringConst);
+					
+					// Reset string const begin variable
+					stringConstBegin = 0;
 				}
 			}
 			//
@@ -101,6 +106,7 @@ class KeywordInspector
 			else
 			{
 				// No special action is needed for other char.
+				// Inspect next char directly
 			}
 		}
 		
@@ -133,10 +139,35 @@ class KeywordInspector
 			wordsInStrConst.set(i, stemmedWord);
 		}
 		
-		// Output the process string constant
-		String processedStrConst = joinString(wordsInStrConst, ' ');
+		// Re-join words to build canonicalized string const
+		String canonicalizedStrConst = joinString(wordsInStrConst, ' ');
 		
-		return processedStrConst;
+		return canonicalizedStrConst;
+	}
+	
+	private String figureOutKeywordInStrConst(String stringConst)
+	{
+		//
+		// Canonicalize string const with word splitting, stemming, etc.
+		String canonicalizedStrConst = canonicalizeStringConst(stringConst);
+		
+		// Check if current string const contains keyword
+		String keywordInStringConst = keywordList.figureOutKeyword(canonicalizedStrConst);
+		if (keywordInStringConst != null)
+		{
+			//
+			// Check that the keyword is an complete word
+			// instead of char sequence appear in the middle of
+			// another word
+			int locOfKeyword = canonicalizedStrConst.indexOf(keywordInStringConst);
+			if (locOfKeyword == 0 						// Either the keyword is at the beginning of the string
+				|| canonicalizedStrConst.charAt(locOfKeyword - 1) == ' ')		// Or it's an complete word
+			{
+				return keywordInStringConst;
+			}
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -154,18 +185,12 @@ class KeywordInspector
 		// Check each string const
 		// CORNER CASE: when the list is empty, the code is still correct
 		for (String stringConst : stringConsts)
-		{
-			//
-			// Canonicalize string const with word splitting, stemming, etc.
-			String canonicalizedStrConst = canonicalizeStringConst(stringConst);
-			
-			// Check if current string const contains keyword
-			String keywordInStringConst = keywordList.figureOutKeyword(canonicalizedStrConst);
-			if (keywordInStringConst != null)
+		{			
+			String keywordInStrConst = figureOutKeywordInStrConst(stringConst);
+			if (keywordInStrConst != null)
 			{
-				// Current Jimple statement contains keyword
-				return keywordInStringConst;
-			}			
+				return keywordInStrConst;
+			}
 		}
 		
 		// None of the string consts in current Jimple statement
