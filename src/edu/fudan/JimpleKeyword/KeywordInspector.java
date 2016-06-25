@@ -32,6 +32,7 @@ class KeywordInspector
 	// Data list for Jimple statement inspection
 	private KeywordList keywordList;
 	private InterestedApiList interestedApiList;
+	private LibrariesList librariesList;
 	
 	//
 	// Some utilities for keyword inspection
@@ -117,6 +118,7 @@ class KeywordInspector
 	private String joinString(List<String> strList, char seperator)
 	{
 		StringBuilder outputBuilder = new StringBuilder();
+		
 		for (String str : strList)
 		{
 			outputBuilder.append(str);
@@ -168,6 +170,9 @@ class KeywordInspector
 			}
 		}
 		
+		//
+		// Current string const doesn't contain any keyword
+		// or keyword is the one we don't want.
 		return null;
 	}
 	
@@ -236,6 +241,17 @@ class KeywordInspector
 			if (!interestedApiList.containInterestedApi(unitInString))
 			{
 				// Skip Jimple statement that doesn't contain interested API
+				return false;
+			}
+		}
+		
+		//
+		// Check if current API invoked is in the libraries list
+		if (Config.apiInLibrariesOnly)
+		{
+			if (!librariesList.containLibPackageName(unitInString))
+			{
+				// Skip Jimple statement that invokes API not in libraries list
 				return false;
 			}
 		}
@@ -388,6 +404,46 @@ class KeywordInspector
 		}
 	}
 	
+	/**
+	
+		Initialize LibrariesList class instance.
+		
+		If Config.apiInLibrariesOnly is turned off, or 
+		config file doesn't exist, null is returned.
+	
+	 */
+	private LibrariesList initLibrariesList()
+	{
+		if (Config.apiInLibrariesOnly)
+		{
+			//
+			// Check if CommonLibraries.txt exists
+			File librariesListFile = new File(Config.CONFIG_FILE_LIBRARIES_LIST);
+			if (librariesListFile.exists())
+			{
+				// Return initialized LibrariesList instance
+				return new LibrariesList();
+			}
+			else
+			{
+				// Libraries list doesn't exist, 
+				// Turn off Config.apiInLibrariesOnly switch
+				Config.apiInLibrariesOnly = false;
+				
+				// Print warning message
+				System.err.println("[WARN] Libraries list is missing, API in libraries only filtering is disabled: "
+									+ Config.CONFIG_FILE_LIBRARIES_LIST);
+				
+				return null;
+			}
+		}
+		else
+		{
+			// Config.apiInLibrariesOnly switch is turned off
+			return null;
+		}
+	}
+	
 	KeywordInspector(KeywordList keywordList)
 	{
 		
@@ -395,6 +451,7 @@ class KeywordInspector
 		// Initialize data list for Jimple inspection
 		this.keywordList = keywordList;
 		interestedApiList = initInterestedApiList();
+		librariesList = initLibrariesList();
 
 		//
 		// Initialize utilities

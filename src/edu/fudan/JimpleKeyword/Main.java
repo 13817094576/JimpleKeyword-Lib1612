@@ -22,7 +22,8 @@ public class Main
 		System.out.println("Usage: java -jar JimpleKeyword.jar [options] --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
 		System.out.println("This program is written and tested on Java 1.7");
 		
-		System.out.println("\n-m\tRecord and print Jimple statements using HashMap class");
+		System.out.println("\nOptions:");
+		System.out.println("-m\tRecord and print Jimple statements using HashMap class");
 		System.out.println("-a\tDisable API filtering feature, inspect Jimple statement regardless of API it invokes");
 	}
 	
@@ -165,6 +166,10 @@ public class Main
 			else if (args[i].equals("-a"))
 			{
 				Config.interestedApiOnly = false;
+			}
+			else
+			{
+				System.err.println("Unknown argument ignored: " + args[i]);
 			}
 		}
 		

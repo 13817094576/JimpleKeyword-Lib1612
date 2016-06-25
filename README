@@ -6,6 +6,7 @@ acquired from an APK package.
 
 Usage: java -jar JimpleKeyword.jar [options] --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT
 This program is written and tested on Java 1.7
-		
+	
+Options:	
 -m	Record and print Jimple statements using HashMap class
 -a	Disable API filtering feature, inspect Jimple statement regardless of API it invokes
