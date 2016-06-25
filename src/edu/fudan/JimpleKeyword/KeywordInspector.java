@@ -13,6 +13,7 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 
 /**
@@ -198,6 +199,52 @@ class KeywordInspector
 		return null;
 	}
 	
+	private boolean isJimpleStatInteresting(Unit unit)
+	{
+		//
+		// We only interested in Jimple statement
+		// which invokes certain API 
+		if (!(unit instanceof InvokeStmt))
+		{
+			// Skip non-invoke Jimple statement
+			return false;
+		}		
+		
+		//
+		// Check if current invoke statement has 2 arguments
+		// and the first one is string.
+		// If so, we think this statement is interesting
+		InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
+		// Check if the method invoked has 2 arguments
+		if (invokeExpr.getArgCount() == 2)
+		{
+			// Check if the type of first argument is String
+			String typeOfFirstArg = invokeExpr.getArg(0).getType().toString();
+			if (typeOfFirstArg.equals("java.lang.String"))
+			{
+				return true;
+			}
+		}
+		
+		String unitInString = unit.toString();
+		
+		//
+		// Check if current Jimple statement invokes
+		// API we interested in
+		if (Config.interestedApiOnly)
+		{
+			if (!interestedApiList.containInterestedApi(unitInString))
+			{
+				// Skip Jimple statement that doesn't contain interested API
+				return false;
+			}
+		}
+		
+		//
+		// Given Jimple statement has passed all screening conditions
+		return true;
+	}
+	
 	/**
 	 
 		Inspect given Jimple statement
@@ -208,27 +255,16 @@ class KeywordInspector
 	private void inspectJimpleStatement(Unit curUnit, SootClass curClass)
 	{		
 		//
-		// Currently we only interested in Jimple statement
-		// which invokes certain API
-		if (!(curUnit instanceof InvokeStmt))
+		// Check if the Jimple statement is the one
+		// we interested in
+		if (!isJimpleStatInteresting(curUnit))
 		{
-			// Skip non-invoke Jimple statement
+			// We don't interested in current Jimple statement
+			// Skip it
 			return;
 		}
 		
 		String curUnitInString = curUnit.toString();
-		
-		//
-		// Check if current Jimple statement invokes
-		// API we interested in
-		if (Config.interestedApiOnly)
-		{
-			if (!interestedApiList.containInterestedApi(curUnitInString))
-			{
-				// Skip Jimple statement that doesn't contain interested API
-				return;
-			}
-		}
 		
 		//
 		// Check if current statement uses HashMap class
