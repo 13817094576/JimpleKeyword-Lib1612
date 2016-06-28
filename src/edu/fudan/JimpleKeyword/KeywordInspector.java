@@ -50,6 +50,8 @@ class KeywordInspector
 	private Set<String> keywordsInPackage;
 	// Jimple doesn't seem to duplicate
 	private List<String> jimpleUsingHashMap;
+	// We use List since Jimple statements doesn't seem to duplicate
+	private List<Unit> jimpleHit;
 	
 	/**
 
@@ -298,7 +300,8 @@ class KeywordInspector
 		if (keywordInUnit != null)
 		{
 			// Record current Jimple statement
-			jimpleWithKeywords.add(curUnitInString);
+			jimpleWithKeywords.add(curUnitInString + ',' + keywordInUnit);
+			jimpleHit.add(curUnit);
 			
 			// Record current keyword
 			keywordsHit.add(keywordInUnit);
@@ -462,6 +465,7 @@ class KeywordInspector
 		// Initialize output information variables
 		keywordsInPackage = new HashSet<String>();
 		jimpleWithKeywords = new ArrayList<String>();
+		jimpleHit = new ArrayList<Unit>();
 		keywordsHit = new HashSet<String>();
 		jimpleUsingHashMap = new ArrayList<String>();
 		
@@ -477,6 +481,11 @@ class KeywordInspector
 	List<String> getJimpleWithKeywords()
 	{
 		return jimpleWithKeywords;
+	}
+	
+	List<Unit> getJimpleHit()
+	{
+		return jimpleHit;
 	}
 	
 	Set<String> getKeywordsHit()
