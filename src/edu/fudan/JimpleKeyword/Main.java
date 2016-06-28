@@ -7,16 +7,30 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import soot.Scene;
+import soot.Unit;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.android.IMethodSpec;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.AndroidSourceSinkManager.LayoutMatchingMode;
 import soot.jimple.infoflow.android.data.AndroidMethod;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
+/**
+
+	The Main class contains entry point of JimpleKeyword tool
+	
+	and app-wide program status
+
+ */
 public class Main 
 {		
+	//
+	// App-wide program status
+	public static IInfoflowCFG cfgOfApk;
+	
 	private static void ShowUsage()
 	{
 		System.out.println("Usage: java -jar JimpleKeyword.jar [options] --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
@@ -115,9 +129,12 @@ public class Main
 		
 		// Run info-flow analysis to construct CFG and Call Graph
 		InfoflowResults infoFlowResults = app.runInfoflow();
+		
+		//
+		// Save some analysis results to app-wide program status
+		cfgOfApk = app.getCFG();
 	}
 	
-
 	
 	public static void main(String[] args) 
 	{
@@ -268,6 +285,15 @@ public class Main
 			}
 			System.out.println("Jimple using HashMap <<<<<<<<<<");			
 		}
+		
+		//
+		// Find out and print the root caller classes
+		List<Unit> jimpleHit = keywordInspector.getJimpleHit();
+		RootCallerInspector rootCallerInspector = new RootCallerInspector(jimpleHit);
+		
+		System.out.println("Root Caller Classes >>>>>>>>>>");
+		rootCallerInspector.dumpRootCallerClass();
+		System.out.println("Root Caller Classes <<<<<<<<<<");
 		
 		// Exit normally
 	}
