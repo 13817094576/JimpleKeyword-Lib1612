@@ -100,6 +100,10 @@ class KeywordInspector
 			// Backslash indicates escape character
 			else if (jimpleInString.charAt(i) == '\\')
 			{
+				//
+				// Ensure that char i+1 also exists
+				assert i+1 < jimpleInString.length();
+				
 				// An \" escape sequence is encountered
 				if (jimpleInString.charAt(i+1) == '\"')
 				{
@@ -339,15 +343,9 @@ class KeywordInspector
 			while (methodIter.hasNext())
 			{
 				SootMethod m = methodIter.next();
-				
-				// Construct active body for some method
-				if (!m.hasActiveBody() && m.isConcrete())
-				{
-					m.retrieveActiveBody();
-				}
 					
 				// Skip method without active body
-				if (!m.hasActiveBody())
+				if (!SootUtil.ensureMethodActiveBody(m))
 				{
 					continue;
 				}

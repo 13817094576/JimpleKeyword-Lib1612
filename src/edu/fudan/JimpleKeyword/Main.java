@@ -291,9 +291,13 @@ public class Main
 		List<Unit> jimpleHit = keywordInspector.getJimpleHit();
 		RootCallerInspector rootCallerInspector = new RootCallerInspector(jimpleHit);
 		
-		System.out.println("Root Caller Classes >>>>>>>>>>");
-		rootCallerInspector.dumpRootCallerClass();
-		System.out.println("Root Caller Classes <<<<<<<<<<");
+		Set<String> rootCallerClassInfo = rootCallerInspector.getRootCallerClassInfo();
+		System.out.println("Root Caller Activity Classes >>>>>>>>>>");
+		for (String curRootCallerClassInfo : rootCallerClassInfo)
+		{
+			System.out.println(rootCallerClassInfo);
+		}
+		System.out.println("Root Caller Activity Classes <<<<<<<<<<");
 		
 		// Exit normally
 	}

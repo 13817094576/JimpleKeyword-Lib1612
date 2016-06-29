@@ -23,17 +23,11 @@ import soot.jimple.InvokeStmt;
  */
 class RootCallerInspector 
 {
-	Set<String> rootCallerClass = new HashSet<String>();
 	
 	//
-	// DEBUG
-	void dumpRootCallerClass()
-	{
-		for (String curRootCallerClass : rootCallerClass)
-		{
-			System.out.println(curRootCallerClass);
-		}
-	}
+	// Output statistics information
+	
+	private Set<String> rootCallerClassInfo = new HashSet<String>();
 
 	/**
 
@@ -110,14 +104,9 @@ class RootCallerInspector
 			return;
 		}
 		
-		// Construct active body for some method
-		if (!m.hasActiveBody() && m.isConcrete())
-		{
-			m.retrieveActiveBody();
-		}
-			
+		//	
 		// Skip method without active body
-		if (!m.hasActiveBody())
+		if (!SootUtil.ensureMethodActiveBody(m))
 		{
 			return;
 		}
@@ -138,6 +127,10 @@ class RootCallerInspector
 			
 			//
 			// We only care about invoke of setContentView method
+			// Here we only match "setContentView" instead of
+			// full name which contains package name etc.
+			// since setContentView usually appears in virtualinvoke 
+			// and it doesn't contains android framework package name
 			InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
 			if (!invokeExpr.getMethod().getName().contains("setContentView"))
 			{
@@ -147,7 +140,7 @@ class RootCallerInspector
 			//
 			// Record root caller and its resource ID
 			String resourceId = invokeExpr.getArg(0).toString();
-			rootCallerClass.add(sootClass.getName() + ',' + resourceId);
+			rootCallerClassInfo.add(sootClass.getName() + ',' + resourceId);
 		}
 	}
 	
@@ -227,5 +220,12 @@ class RootCallerInspector
 		assert Main.cfgOfApk != null;
 		
 		inspectRootCaller(jimples);
+	}
+	
+	//
+	// Output information access methods
+	Set<String> getRootCallerClassInfo()
+	{
+		return rootCallerClassInfo;
 	}
 }
