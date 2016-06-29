@@ -27,7 +27,6 @@ import soot.jimple.InvokeStmt;
 
 class KeywordInspector 
 {
-
 	//
 	// Data list for Jimple statement inspection
 	private KeywordList keywordList;
@@ -52,6 +51,16 @@ class KeywordInspector
 	private List<String> jimpleUsingHashMap;
 	// We use List since Jimple statements doesn't seem to duplicate
 	private List<JimpleHit> jimpleHit;
+	
+	//
+	// Enumeration on Jimple statement status
+	// on initial quick judgement
+	enum JimpleInitialJudgeStatus
+	{
+		JIMPLE_NOT_INTERESTED,
+		JIMPLE_NEED_DETAIL_INSPECTION,
+		JIMPLE_DEFINITE_HIT
+	}
 	
 	/**
 
@@ -210,7 +219,15 @@ class KeywordInspector
 		return null;
 	}
 	
-	private boolean isJimpleStatInteresting(Unit unit)
+	/**
+	 
+		This function performs inital Jimple statement filtering.
+		
+		The filter phases in this function must perform quickly,
+		since this function will check every Jimple statement in the app.
+
+	 */
+	private JimpleInitialJudgeStatus judgeJimpleInitially(Unit unit)
 	{
 		//
 		// We only interested in Jimple statement
@@ -218,7 +235,7 @@ class KeywordInspector
 		if (!(unit instanceof InvokeStmt))
 		{
 			// Skip non-invoke Jimple statement
-			return false;
+			return JimpleInitialJudgeStatus.JIMPLE_NOT_INTERESTED;
 		}		
 		
 		//
@@ -233,7 +250,7 @@ class KeywordInspector
 			String typeOfFirstArg = invokeExpr.getArg(0).getType().toString();
 			if (typeOfFirstArg.equals("java.lang.String"))
 			{
-				return true;
+				return JimpleInitialJudgeStatus.JIMPLE_DEFINITE_HIT;
 			}
 		}
 		
@@ -247,12 +264,30 @@ class KeywordInspector
 			if (!interestedApiList.containInterestedApi(unitInString))
 			{
 				// Skip Jimple statement that doesn't contain interested API
-				return false;
+				return JimpleInitialJudgeStatus.JIMPLE_NOT_INTERESTED;
 			}
 		}
 		
 		//
+		// Given Jimple statement has passed initial quick screening conditions
+		return JimpleInitialJudgeStatus.JIMPLE_NEED_DETAIL_INSPECTION;
+	}
+	
+	/**
+
+		This function performs slow steps of Jimple statement filtering.
+		
+		The Jimple statement passed in should be filtered in some extent in advance.
+		If using this function to check every Jimple statement,
+		the program will run very slow.
+
+	 */
+	private boolean judgeJimpleInDetail(String unitInString)
+	{
+		//
 		// Check if current API invoked is in the libraries list
+		// The libraries list is long,
+		// so the matching process is time consuming.
 		if (Config.apiInLibrariesOnly)
 		{
 			if (!librariesList.containLibPackageName(unitInString))
@@ -277,9 +312,10 @@ class KeywordInspector
 	private void inspectJimpleStatement(Unit curUnit, SootClass curClass)
 	{		
 		//
-		// Check if the Jimple statement is the one
-		// we interested in
-		if (!isJimpleStatInteresting(curUnit))
+		// Check the Jimple statement is the one
+		// we interested in initially and quickly
+		JimpleInitialJudgeStatus initialJudgeStatus = judgeJimpleInitially(curUnit);
+		if (initialJudgeStatus == JimpleInitialJudgeStatus.JIMPLE_NOT_INTERESTED)
 		{
 			// We don't interested in current Jimple statement
 			// Skip it
@@ -301,25 +337,40 @@ class KeywordInspector
 		
 		// Check if current statement contains any known keyword
 		String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
-		if (keywordInUnit != null)
+		if (keywordInUnit == null)
 		{
-			// Record current Jimple statement
-			jimpleWithKeywords.add(curUnitInString + ',' + keywordInUnit);
-			
-			JimpleHit jimpleHitInst = new JimpleHit();
-			jimpleHitInst.jimple = curUnit;
-			jimpleHitInst.keyword = keywordInUnit;
-			jimpleHit.add(jimpleHitInst);
-			
-			// Record current keyword
-			keywordsHit.add(keywordInUnit);
-			
-			//
-			// Record the keywords and its corresponding package
-			// Here we record package name as key
-			// since a keyword may appears in multiple packages
-			keywordsInPackage.add(curClass.getPackageName() + ',' + keywordInUnit);
-		}		
+			// Skip Jimple statement without keyword
+			return;
+		}
+		
+		//
+		// Supplement detailed inspection
+		if (initialJudgeStatus == JimpleInitialJudgeStatus.JIMPLE_NEED_DETAIL_INSPECTION)
+		{
+			if (!judgeJimpleInDetail(curUnitInString))
+			{
+				// Skip statements not pass detailed inspection 
+				return;
+			}
+		}
+		
+		// Record current Jimple statement
+		jimpleWithKeywords.add(curUnitInString + ',' + keywordInUnit);
+		
+		JimpleHit jimpleHitInst = new JimpleHit();
+		jimpleHitInst.jimple = curUnit;
+		jimpleHitInst.keyword = keywordInUnit;
+		jimpleHit.add(jimpleHitInst);
+		
+		// Record current keyword
+		keywordsHit.add(keywordInUnit);
+		
+		//
+		// Record the keywords and its corresponding package
+		// Here we record package name as key
+		// since a keyword may appears in multiple packages
+		keywordsInPackage.add(curClass.getPackageName() + ',' + keywordInUnit);
+		
 	}
 	
 	/**
