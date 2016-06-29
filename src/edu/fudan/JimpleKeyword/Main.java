@@ -186,7 +186,7 @@ public class Main
 			}
 			else
 			{
-				System.err.println("Unknown argument ignored: " + args[i]);
+				System.err.println("[WARN] Unknown argument ignored: " + args[i]);
 			}
 		}
 		
@@ -288,14 +288,14 @@ public class Main
 		
 		//
 		// Find out and print the root caller classes
-		List<Unit> jimpleHit = keywordInspector.getJimpleHit();
+		List<JimpleHit> jimpleHit = keywordInspector.getJimpleHit();
 		RootCallerInspector rootCallerInspector = new RootCallerInspector(jimpleHit);
 		
 		Set<String> rootCallerClassInfo = rootCallerInspector.getRootCallerClassInfo();
 		System.out.println("Root Caller Activity Classes >>>>>>>>>>");
 		for (String curRootCallerClassInfo : rootCallerClassInfo)
 		{
-			System.out.println(rootCallerClassInfo);
+			System.out.println(curRootCallerClassInfo);
 		}
 		System.out.println("Root Caller Activity Classes <<<<<<<<<<");
 		

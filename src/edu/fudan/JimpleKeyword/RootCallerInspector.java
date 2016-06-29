@@ -85,7 +85,14 @@ class RootCallerInspector
 		return null;
 	}
 	
-	private void inspectRootCallerClass(SootClass sootClass)
+	/**
+	 
+		Check if a root caller class is a child of Activity class.
+		
+		If so, record its related info and keyword on sensitive user info.
+
+	 */
+	private void inspectRootCallerClass(SootClass sootClass, String keyword)
 	{
 		//
 		// We only care about root caller class which is a 
@@ -139,8 +146,9 @@ class RootCallerInspector
 			
 			//
 			// Record root caller and its resource ID
+			// Currently we record info in displayable format directly.
 			String resourceId = invokeExpr.getArg(0).toString();
-			rootCallerClassInfo.add(sootClass.getName() + ',' + resourceId);
+			rootCallerClassInfo.add(sootClass.getName() + ',' + keyword + ',' + resourceId);
 		}
 	}
 	
@@ -152,10 +160,10 @@ class RootCallerInspector
 		to avoid invocation cycle.
 
 	 */
-	private void inspectCaller(Unit jimple, Stack<SootMethod> methodStack)
+	private void inspectCaller(JimpleHit jimpleHit, Stack<SootMethod> methodStack)
 	{
 		// Find out the method contains the Jimple statement
-		SootMethod m = Main.cfgOfApk.getMethodOf(jimple);
+		SootMethod m = Main.cfgOfApk.getMethodOf(jimpleHit.jimple);
 		
 		//
 		// Find out the callers of current method
@@ -166,7 +174,7 @@ class RootCallerInspector
 			// Current method is a root caller
 			
 			// Inspect and record related information of the class
-			inspectRootCallerClass(m.getDeclaringClass());
+			inspectRootCallerClass(m.getDeclaringClass(), jimpleHit.keyword);
 		}
 		else
 		{
@@ -184,7 +192,14 @@ class RootCallerInspector
 			
 			for (Unit caller : callers)
 			{
-				inspectCaller(caller, methodStack);
+				// Build a new instance of JimpleHit
+				// to record jimple and corresponding keyword
+				JimpleHit callerHit = new JimpleHit();
+				callerHit.jimple = caller;
+				// Transit keyword
+				callerHit.keyword = jimpleHit.keyword;
+				
+				inspectCaller(callerHit, methodStack);
 			}
 			
 			//
@@ -194,7 +209,7 @@ class RootCallerInspector
 		}
 	}
 	
-	private void inspectRootCaller(List<Unit> jimples)
+	private void inspectRootCaller(List<JimpleHit> jimples)
 	{
 		//
 		// Check assumptions
@@ -203,17 +218,17 @@ class RootCallerInspector
 		//
 		// CORNER CASE: When the list is empty,
 		// This function still work.
-		for (Unit jimple : jimples)
+		for (JimpleHit jimpleHit : jimples)
 		{
 			//
 			// Allocate an method stack for each Jimple statement
 			// to avoid invocation cycle
 			Stack<SootMethod> methodStack = new Stack<SootMethod>();
-			inspectCaller(jimple, methodStack);
+			inspectCaller(jimpleHit, methodStack);
 		}
 	}
 
-	RootCallerInspector(List<Unit> jimples)
+	RootCallerInspector(List<JimpleHit> jimples)
 	{
 		//
 		// Check assumptions
