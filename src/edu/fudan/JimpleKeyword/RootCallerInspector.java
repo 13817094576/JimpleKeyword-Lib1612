@@ -1,8 +1,10 @@
 package edu.fudan.JimpleKeyword;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -23,6 +25,12 @@ import soot.jimple.InvokeStmt;
  */
 class RootCallerInspector 
 {
+	
+	//
+	// Cached data structure for speeding up processing
+	
+	// Activity ID cache for avoiding repeated Activity class scanning
+	private Map<String, String> activityClassId = new HashMap<String, String>();
 	
 	//
 	// Output statistics information
@@ -86,6 +94,88 @@ class RootCallerInspector
 	}
 	
 	/**
+
+		Find out the resource ID of a given Activity class
+		by matching the setContentView method.
+		
+		If this function can't determine the ID,
+		"UNDETERMINED" is returned.
+
+	 */
+	private String getIdOfActivityClass(SootClass activityClass)
+	{
+		//
+		// Check assumptions
+		assert activityClass != null;
+		
+		//
+		// Lookup the Activity ID cache first
+		String className = activityClass.getName();
+		if (activityClassId.containsKey(className))
+		{
+			return activityClassId.get(className);
+		}
+		
+		//
+		// Scan the Jimple code of Activity Class
+		Iterator<SootMethod> methodIter = activityClass.methodIterator();
+		while (methodIter.hasNext())
+		{
+			SootMethod m = methodIter.next();
+			
+			//	
+			// Skip method without active body
+			if (!SootUtil.ensureMethodActiveBody(m))
+			{
+				continue;
+			}
+			
+			//
+			// Traverse the statements in onCreate method
+			// to extract setContentView statement
+			Iterator<Unit> unitIter = m.getActiveBody().getUnits().iterator();
+			while (unitIter.hasNext())
+			{
+				//
+				// We only care about invoke statement
+				Unit unit = unitIter.next();
+				if (!(unit instanceof InvokeStmt))
+				{
+					continue;
+				}
+				
+				//
+				// We only care about invoke of setContentView method
+				// Here we only match "setContentView" instead of
+				// full name which contains package name etc.
+				// since setContentView usually appears in virtualinvoke 
+				// and it doesn't contains android framework package name
+				InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
+				if (!invokeExpr.getMethod().getName().contains("setContentView"))
+				{
+					continue;
+				}
+				
+				//
+				// Record root caller and its resource ID
+				// Currently we record info in displayable format directly.
+				String resourceId = invokeExpr.getArg(0).toString();
+				
+				// Save resource ID to activity ID cache
+				activityClassId.put(className, resourceId);
+				
+				return resourceId;
+			}			
+		}
+		
+		//
+		// No setContentView method found, can't determine resource ID
+		String undeterminedId = "UNDETERMINED";
+		activityClassId.put(className, undeterminedId);
+		return undeterminedId;
+	}
+	
+	/**
 	 
 		Check if a root caller class is a child of Activity class.
 		
@@ -103,53 +193,13 @@ class RootCallerInspector
 		}
 		
 		//
-		// Figure out the onCreate method in an Activity class
-		SootMethod m = getOnCreateMethod(sootClass);
-		if (m == null)
-		{
-			System.err.println("[WARN] No onCreate() method in Activity class: " + sootClass.getName());
-			return;
-		}
-		
-		//	
-		// Skip method without active body
-		if (!SootUtil.ensureMethodActiveBody(m))
-		{
-			return;
-		}
+		// Find out the ID of activity class
+		String activityId = getIdOfActivityClass(sootClass);
 		
 		//
-		// Traverse the statements in onCreate method
-		// to extract setContentView statement
-		Iterator<Unit> unitIter = m.getActiveBody().getUnits().iterator();
-		while (unitIter.hasNext())
-		{
-			//
-			// We only care about invoke statement
-			Unit unit = unitIter.next();
-			if (!(unit instanceof InvokeStmt))
-			{
-				continue;
-			}
-			
-			//
-			// We only care about invoke of setContentView method
-			// Here we only match "setContentView" instead of
-			// full name which contains package name etc.
-			// since setContentView usually appears in virtualinvoke 
-			// and it doesn't contains android framework package name
-			InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
-			if (!invokeExpr.getMethod().getName().contains("setContentView"))
-			{
-				continue;
-			}
-			
-			//
-			// Record root caller and its resource ID
-			// Currently we record info in displayable format directly.
-			String resourceId = invokeExpr.getArg(0).toString();
-			rootCallerClassInfo.add(sootClass.getName() + ',' + keyword + ',' + resourceId);
-		}
+		// Record root caller activity class
+		String rootCallerClassName = sootClass.getName();
+		rootCallerClassInfo.add(rootCallerClassName + ',' + keyword + ',' + activityId);
 	}
 	
 	/**
