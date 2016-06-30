@@ -127,6 +127,36 @@ class RootCallerInspector
 	}
 	
 	/**
+	
+		This function checks if a method invoked is
+		setContentView or inflate.
+		
+		These method set the content of an activity
+
+	 */
+	private boolean isInvokeOfSetLayoutMethod(String methodName, String unitInString)
+	{
+		// For setContentView method,
+		// Here we only match "setContentView" instead of
+		// full name which contains package name etc.
+		// since setContentView usually appears in virtualinvoke 
+		// and it doesn't contains android framework package name
+		if (methodName.contains("setContentView"))
+		{
+			return true;
+		}
+		
+		//
+		// Matching LayoutInflater.inflate()
+		if (unitInString.contains("inflate") && unitInString.contains("LayoutInflater"))
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
 
 		Find out the resource ID of a given Activity class
 		by matching the setContentView method.
@@ -178,16 +208,13 @@ class RootCallerInspector
 				if (!(unit instanceof InvokeStmt))
 				{
 					continue;
-				}
+				}				
 				
 				//
-				// We only care about invoke of setContentView method
-				// Here we only match "setContentView" instead of
-				// full name which contains package name etc.
-				// since setContentView usually appears in virtualinvoke 
-				// and it doesn't contains android framework package name
+				// We only care about invoke of setContentView/inflate method
 				InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
-				if (!invokeExpr.getMethod().getName().contains("setContentView"))
+				String invokedMethodName = invokeExpr.getMethod().getName();
+				if (!isInvokeOfSetLayoutMethod(invokedMethodName, unit.toString()))
 				{
 					continue;
 				}
@@ -195,6 +222,8 @@ class RootCallerInspector
 				//
 				// Record root caller and its resource ID
 				// Currently we record info in displayable format directly.
+				// For both setContentView and inflate,
+				// the resource ID is the first argument.
 				String resourceId = invokeExpr.getArg(0).toString();
 				
 				// Save resource ID to activity ID cache
