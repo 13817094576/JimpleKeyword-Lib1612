@@ -30,7 +30,7 @@ class RootCallerInspector
 	// Cached data structure for speeding up processing
 	
 	// Activity ID cache for avoiding repeated Activity class scanning
-	private Map<String, String> activityClassId = new HashMap<String, String>();
+	private Map<String, String> activityClassIdCache = new HashMap<String, String>();
 	
 	//
 	// Output statistics information
@@ -75,28 +75,61 @@ class RootCallerInspector
 		}
 	}
 	
-	private SootMethod getOnCreateMethod(SootClass sootClass)
+	/**
+	 
+		Try to get activity from the super classes of a activity class
+
+	 */
+	private String getActivityIdFromSuperClass(SootClass activityClass)
 	{
-		Iterator<SootMethod> methodIter = sootClass.methodIterator();
-		while (methodIter.hasNext())
+		//
+		// Check assumptions
+		assert activityClass != null;
+		
+		if (activityClass.hasSuperclass())
 		{
-			SootMethod m = methodIter.next();
-			
-			if (m.getName().contains("onCreate"))
+			//
+			// Check if the super class is a child of displayable class
+			SootClass superClass = activityClass.getSuperclass();
+			if (!isChildOfDisplayableClass(superClass))
 			{
-				return m;
+				// Super class isn't a child of displayable class
+				// So we're sure no resource ID in super class
+				return "UNDETERMINED";
+			}
+			
+			
+			String activityClassId = getIdOfActivityClass(superClass);
+			if (activityClassId.equals("UNDETERMINED"))
+			{
+				// No resource ID in super class,
+				// so ID can't be determined, keep activityClassId unchanged
+				return activityClassId;
+			}
+			else
+			{
+				// Found resource ID in super class
+				// flag the ID as ID from super class by adding 'S' prefix
+				return 'S' + activityClassId;
 			}
 		}
-		
-		//
-		// No method named onCreate
-		return null;
+		else
+		{
+			//
+			// No setContentView method found
+			// and no resource ID in base Activity class,
+			// Can't determine resource ID
+			return "UNDETERMINED";
+		}		
 	}
 	
 	/**
 
 		Find out the resource ID of a given Activity class
 		by matching the setContentView method.
+		
+		If resource ID is found in a super Activity class,
+		the resource ID is marked with 'S' prefix.
 		
 		If this function can't determine the ID,
 		"UNDETERMINED" is returned.
@@ -111,9 +144,9 @@ class RootCallerInspector
 		//
 		// Lookup the Activity ID cache first
 		String className = activityClass.getName();
-		if (activityClassId.containsKey(className))
+		if (activityClassIdCache.containsKey(className))
 		{
-			return activityClassId.get(className);
+			return activityClassIdCache.get(className);
 		}
 		
 		//
@@ -162,17 +195,23 @@ class RootCallerInspector
 				String resourceId = invokeExpr.getArg(0).toString();
 				
 				// Save resource ID to activity ID cache
-				activityClassId.put(className, resourceId);
+				activityClassIdCache.put(className, resourceId);
 				
 				return resourceId;
 			}			
 		}
 		
 		//
-		// No setContentView method found, can't determine resource ID
-		String undeterminedId = "UNDETERMINED";
-		activityClassId.put(className, undeterminedId);
-		return undeterminedId;
+		// No setContentView method found in current Activity class,
+		// maybe its base Activity class has resource ID.
+		// If we can't determine ID with super class,
+		// "UNDETERMINED" is returned.
+		String activityClassId = getActivityIdFromSuperClass(activityClass);
+		
+		// Save activity class ID to cache
+		activityClassIdCache.put(className, activityClassId);
+		
+		return activityClassId;
 	}
 	
 	/**
