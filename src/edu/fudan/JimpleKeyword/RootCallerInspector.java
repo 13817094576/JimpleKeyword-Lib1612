@@ -93,7 +93,7 @@ class RootCallerInspector
 
 	 */
 	private void inspectRootCallerClass(SootClass sootClass, String keyword)
-	{
+	{		
 		//
 		// We only care about root caller class which is a 
 		// child of class managing content display
@@ -154,6 +154,42 @@ class RootCallerInspector
 	
 	/**
 	 
+		FlowDroid set all components called from dummyMainClass.
+		So when a method is called from dummyMainClass, 
+		this method is an entrypoint.
+		
+		This function is used for determining if all callers are
+		from dummyMainClass to judge if a method is an entrypoint.
+
+	 */
+	private boolean areCallersFromDummyMain(Set<Unit> callers)
+	{
+		//
+		// Check assumptions
+		assert callers != null;
+		
+		for (Unit caller : callers)
+		{
+			//
+			// Find out the class the caller statement located in
+			SootMethod callerMethod = Main.cfgOfApk.getMethodOf(caller);
+			SootClass callerClass = callerMethod.getDeclaringClass();
+			
+			//
+			// Check if the caller class isn't dummyMainClass
+			if (!callerClass.getName().contains("dummyMainClass"))
+			{
+				return false;
+			}
+		}
+		
+		//
+		// All callers are from dummyMainClass
+		return true;
+	}
+	
+	/**
+	 
 		Inspect the root caller of a given Jimple statement.
 		
 		methodStack is used for recording the methods in the call chain
@@ -168,7 +204,9 @@ class RootCallerInspector
 		//
 		// Find out the callers of current method
 		Set<Unit> callers = Main.cfgOfApk.getCallersOf(m);
-		if (callers.isEmpty())
+		if (callers.isEmpty()
+			// For FlowDroid, all entrypoint methods are called from dummyMainClass
+			|| areCallersFromDummyMain(callers))
 		{
 			//
 			// Current method is a root caller
