@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import soot.MethodOrMethodContext;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
+import soot.util.queue.QueueReader;
 
 /**
 
@@ -372,6 +374,45 @@ class KeywordInspector
 		keywordsInPackage.add(curClass.getPackageName() + ',' + keywordInUnit);
 		
 	}
+
+	/**
+		 
+		Scanning the Jimple statements which are though reachable by FlowDroid,
+		and record the information we care.
+	
+	 */
+	private void scanJimpleReachableOnly()
+	{
+		//
+		// Check assumptions
+		assert keywordList != null;		
+		
+		//
+		// Traverse the reachable method in APK
+		QueueReader<MethodOrMethodContext> methodIter = Scene.v().getReachableMethods().listener();
+		while (methodIter.hasNext())
+		{
+			SootMethod m = methodIter.next().method();
+				
+			// Skip method without active body
+			if (!SootUtil.ensureMethodActiveBody(m))
+			{
+				continue;
+			}
+			
+			//
+			// Traverse the statements in a method
+			Iterator<Unit> unitIter = m.getActiveBody().getUnits().iterator();
+			while (unitIter.hasNext())
+			{
+				Unit curUnit = unitIter.next();
+
+				// Inspect current Jimple statement
+				// and recording relating info if we interested in
+				inspectJimpleStatement(curUnit, m.getDeclaringClass());
+			}
+		}
+	}
 	
 	/**
 	 
@@ -525,7 +566,7 @@ class KeywordInspector
 		//
 		// Scan Jimple statements
 		// and record the information we interested in
-		scanJimple();
+		scanJimpleReachableOnly();
 	}
 	
 	//
