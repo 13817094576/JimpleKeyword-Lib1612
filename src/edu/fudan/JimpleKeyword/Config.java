@@ -21,10 +21,11 @@ public class Config
 	// On default, we only record Jimple invoke API we interested
 	// we can turn off API filtering using "-a" command line switch
 	public static boolean interestedApiOnly = true;
-	// On default, we only care about APIs appeared in libraries list
-	// Currently the switch is enabled by default.
-	// We may add a command line switch in the future.
-	public static boolean apiInLibrariesOnly = true;
+	// On default, API in libraries only filtering is disabled,
+	// since the libraries list may be incomplete and
+	// many APIs may be omitted.
+	// We can turn this feature on with "-p" command line switch.
+	public static boolean apiInLibrariesOnly;
 	
 	//
 	// Program exit status
