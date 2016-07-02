@@ -476,7 +476,7 @@ class KeywordInspector
 			//
 			// Check if InterestedAPIs.txt exists
 			File interestedApiListFile = new File(Config.CONFIG_FILE_INTERESTED_API);
-			if (interestedApiListFile.exists())
+			if (interestedApiListFile.isFile())
 			{
 				// Return initialized InterestedApiList instance
 				return new InterestedApiList();
@@ -516,7 +516,7 @@ class KeywordInspector
 			//
 			// Check if CommonLibraries.txt exists
 			File librariesListFile = new File(Config.CONFIG_FILE_LIBRARIES_LIST);
-			if (librariesListFile.exists())
+			if (librariesListFile.isFile())
 			{
 				// Return initialized LibrariesList instance
 				return new LibrariesList();
@@ -566,7 +566,7 @@ class KeywordInspector
 		//
 		// Scan Jimple statements
 		// and record the information we interested in
-		scanJimpleReachableOnly();
+		scanJimple();
 	}
 	
 	//

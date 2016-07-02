@@ -55,13 +55,13 @@ public class Main
 		// Check if config file exist
 		
 		File taintWrapperFile = new File(Config.CONFIG_FILE_TAINT_WRAPPER);
-		if (!taintWrapperFile.exists())
+		if (!taintWrapperFile.isFile())
 		{
 			System.err.println("Config File EasyTaintWrapperSource.txt missing\nAborted");
 			throw new FileSystemNotFoundException("Config File EasyTaintWrapperSource.txt missing");
 		}
 		File androidCallbackFile = new File(Config.CONFIG_FILE_ANDROID_CALLBACK);
-		if (!androidCallbackFile.exists())
+		if (!androidCallbackFile.isFile())
 		{
 			System.err.println("Config File AndroidCallbacks.txt missing\nAborted");
 			throw new FileSystemNotFoundException("Config File AndroidCallbacks.txt missing");
@@ -73,12 +73,12 @@ public class Main
 		//
 		// Check parameters
 		File androidJarFile = new File(androidJar);
-		if (!androidJarFile.exists())
+		if (!androidJarFile.isDirectory())
 		{
 			throw new FileSystemNotFoundException("ANDROID.JAR not found: " + androidJar);
 		}
 		File apkFileObject = new File(apkFile);
-		if (!apkFileObject.exists())
+		if (!apkFileObject.isFile())
 		{
 			throw new FileSystemNotFoundException("APK File not found: " + apkFile);
 		}
@@ -162,6 +162,8 @@ public class Main
 		// Get ANDROID.JAR and APP.APK
 		for (int i=0; i<args.length; i++)
 		{
+			//
+			// Parse input file arguments
 			if (args[i].equals("--android-jar")) 
 			{
 				// Get the path of ANDROID.JAR
@@ -177,6 +179,9 @@ public class Main
 			{
 				keywordListFileName = args[i];
 			}
+			
+			//
+			// Parse options
 			else if (args[i].equals("-m"))
 			{
 				Config.recordJimpleUsingHashMap = true;
@@ -189,6 +194,9 @@ public class Main
 			{
 				Config.apiInLibrariesOnly = true;
 			}
+			
+			//
+			// Default handler for other arguments
 			else
 			{
 				System.err.println("[WARN] Unknown argument ignored: " + args[i]);
@@ -217,19 +225,19 @@ public class Main
 		
 		// Check if parameters are valid
 		File apk = new File(apkFile);
-		if (!apk.exists())
+		if (!apk.isFile())
 		{
 			System.err.println("APK File doesn't exist: " + apkFile);
 			throw new FileSystemNotFoundException("Specified APK File doesn't exist");
 		}
 		File androidJarFile = new File(androidJar);
-		if (!androidJarFile.exists())
+		if (!androidJarFile.isDirectory())
 		{
 			System.err.println("ANDROID.JAR path doesn't exist: " + androidJar);
 			throw new FileSystemNotFoundException("ANDROID.JAR path doesn't exist");
 		}
 		File keywordListFile = new File(keywordListFileName);
-		if (!keywordListFile.exists())
+		if (!keywordListFile.isFile())
 		{
 			System.err.println("KEYWORD-LIST.TXT path doesn't exist: " + keywordListFileName);
 			throw new FileSystemNotFoundException("KEYWORD-LIST.TXT path doesn't exist");
