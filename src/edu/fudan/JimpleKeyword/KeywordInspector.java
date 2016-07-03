@@ -16,6 +16,7 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
+import soot.jimple.infoflow.IntTag;
 import soot.util.queue.QueueReader;
 
 /**
@@ -155,12 +156,21 @@ class KeywordInspector
 		// Use Porter Stemmer to do stemming
 		for (int i=0; i<wordsInStrConst.size(); i++)
 		{
-			String stemmedWord = porterStemmer.stripAffixes(wordsInStrConst.get(i));
+			// Only stem word longer than 4 chars
+			String word = wordsInStrConst.get(i);
+			String stemmedWord = word.length() > 4 ?
+					porterStemmer.stripAffixes(word) : word;
+					
+			// Save stemmed word
 			wordsInStrConst.set(i, stemmedWord);
 		}
 		
 		// Re-join words to build canonicalized string const
 		String canonicalizedStrConst = joinString(wordsInStrConst, ' ');
+		
+		//
+		// Convert canonicalized str const to lower case to ignore case
+		canonicalizedStrConst = canonicalizedStrConst.toLowerCase();
 		
 		return canonicalizedStrConst;
 	}
@@ -428,6 +438,8 @@ class KeywordInspector
 		
 		//
 		// Traverse the classes in APK
+		int unitNum = 0;					// Unique ID for each Jimple statement
+		
 		Iterator<SootClass> classIter = Scene.v().getClasses().iterator();
 		while (classIter.hasNext())
 		{
@@ -452,6 +464,10 @@ class KeywordInspector
 				while (unitIter.hasNext())
 				{
 					Unit curUnit = unitIter.next();
+					
+					//
+					// Set unitNum tag for current Jimple statement
+					
 
 					// Inspect current Jimple statement
 					// and recording relating info if we interested in
