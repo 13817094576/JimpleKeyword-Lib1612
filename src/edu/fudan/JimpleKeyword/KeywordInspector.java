@@ -16,7 +16,6 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
-import soot.jimple.infoflow.IntTag;
 import soot.util.queue.QueueReader;
 
 /**
@@ -367,11 +366,13 @@ class KeywordInspector
 		}
 		
 		// Record current Jimple statement
-		jimpleWithKeywords.add(curUnitInString + ',' + keywordInUnit);
+		IntTag unitNumTag = (IntTag)(curUnit.getTag("unitNum"));
+		jimpleWithKeywords.add(unitNumTag.getIntInString() + ',' + curUnitInString + ',' + keywordInUnit);
 		
 		JimpleHit jimpleHitInst = new JimpleHit();
 		jimpleHitInst.jimple = curUnit;
 		jimpleHitInst.keyword = keywordInUnit;
+		jimpleHitInst.keywordUnitNum = unitNumTag.getInt();
 		jimpleHit.add(jimpleHitInst);
 		
 		// Record current keyword
@@ -467,7 +468,8 @@ class KeywordInspector
 					
 					//
 					// Set unitNum tag for current Jimple statement
-					
+					curUnit.addTag(new IntTag("unitNum", unitNum));
+					unitNum++;
 
 					// Inspect current Jimple statement
 					// and recording relating info if we interested in
@@ -622,5 +624,7 @@ class KeywordInspector
 class JimpleHit
 {
 	Unit jimple;
+	
+	int keywordUnitNum;
 	String keyword;
 }

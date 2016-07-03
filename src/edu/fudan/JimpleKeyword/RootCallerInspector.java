@@ -253,7 +253,7 @@ class RootCallerInspector
 		If so, record its related info and keyword on sensitive user info.
 
 	 */
-	private void inspectRootCallerClass(SootClass sootClass, String keyword)
+	private void inspectRootCallerClass(SootClass sootClass, String keyword, int keywordUnitNum)
 	{		
 		//
 		// We only care about root caller class which is a 
@@ -270,7 +270,7 @@ class RootCallerInspector
 		//
 		// Record root caller activity class
 		String rootCallerClassName = sootClass.getName();
-		rootCallerClassInfo.add(rootCallerClassName + ',' + keyword + ',' + activityId);
+		rootCallerClassInfo.add(Integer.toString(keywordUnitNum) + ',' + rootCallerClassName + ',' + keyword + ',' + activityId);
 	}
 	
 	/**
@@ -329,7 +329,7 @@ class RootCallerInspector
 			//
 			// Root caller found.
 			// Inspect root caller directly
-			inspectRootCallerClass(methodRootCallerCache.get(m), jimpleHit.keyword);
+			inspectRootCallerClass(methodRootCallerCache.get(m), jimpleHit.keyword, jimpleHit.keywordUnitNum);
 			
 			return;
 		}
@@ -346,7 +346,7 @@ class RootCallerInspector
 			
 			// Inspect and record related information of the class
 			SootClass rootCallerClass = m.getDeclaringClass();
-			inspectRootCallerClass(rootCallerClass, jimpleHit.keyword);
+			inspectRootCallerClass(rootCallerClass, jimpleHit.keyword, jimpleHit.keywordUnitNum);
 			
 			//
 			// Save root caller of current method to cache
@@ -372,8 +372,9 @@ class RootCallerInspector
 				// to record jimple and corresponding keyword
 				JimpleHit callerHit = new JimpleHit();
 				callerHit.jimple = caller;
-				// Transit keyword
+				// Transit keyword, keywordUnitNum
 				callerHit.keyword = jimpleHit.keyword;
+				callerHit.keywordUnitNum = jimpleHit.keywordUnitNum;
 				
 				inspectCaller(callerHit, methodStack);
 			}
