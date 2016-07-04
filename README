@@ -11,3 +11,11 @@ Options:
 -m	Record and print Jimple statements using HashMap class
 -a	Disable API filtering feature, inspect Jimple statement regardless of API it invokes
 -p	Enable API in libraries only filtering. However, the libraries list may be incomplete
+
+
+Notes on the format of Jimple Hit log:
+We should put Jimple statement text at the end of a line to facilitate log parsing,
+since the Jimple statement may also contains comma ','.
+
+For example:
+857316,password,specialinvoke $r7.<twitter4j.HttpParameter: void <init>(java.lang.String,java.lang.String)>("x_auth_password", $r2)

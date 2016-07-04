@@ -113,7 +113,17 @@ class RootCallerInspector
 			{
 				// Found resource ID in super class
 				// flag the ID as ID from super class by adding 'S' prefix
-				return 'S' + activityClassId;
+							
+				if (activityClassId.charAt(0) == 'S')
+				{
+					// If activity ID already has 'S' prefix, return it directly
+					return activityClassId;
+				}
+				else
+				{
+					// Otherwise, add 'S' prefix
+					return 'S' + activityClassId;
+				}
 			}
 		}
 		else

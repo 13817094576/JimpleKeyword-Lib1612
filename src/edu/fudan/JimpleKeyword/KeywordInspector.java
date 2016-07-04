@@ -367,7 +367,7 @@ class KeywordInspector
 		
 		// Record current Jimple statement
 		IntTag unitNumTag = (IntTag)(curUnit.getTag("unitNum"));
-		jimpleWithKeywords.add(unitNumTag.getIntInString() + ',' + curUnitInString + ',' + keywordInUnit);
+		jimpleWithKeywords.add(unitNumTag.getIntInString() + ',' + keywordInUnit + ',' + curUnitInString);
 		
 		JimpleHit jimpleHitInst = new JimpleHit();
 		jimpleHitInst.jimple = curUnit;
