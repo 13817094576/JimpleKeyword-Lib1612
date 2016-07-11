@@ -51,7 +51,7 @@ class KeywordInspector
 	private Set<String> keywordsInPackage;
 	// Jimple doesn't seem to duplicate
 	private List<String> jimpleUsingHashMap;
-	// We use List since Jimple statements doesn't seem to duplicate
+	// Record info on Jimple statement hit for inspecting root classes
 	private List<JimpleHit> jimpleHit;
 	
 	//
@@ -178,6 +178,7 @@ class KeywordInspector
 	{
 		//
 		// Canonicalize string const with word splitting, stemming, etc.
+		// The string const is converted to lower case to ignore case
 		String canonicalizedStrConst = canonicalizeStringConst(stringConst);
 		
 		// Check if current string const contains keyword
@@ -188,6 +189,7 @@ class KeywordInspector
 			// Check that the keyword is an complete word
 			// instead of char sequence appear in the middle of
 			// another word
+			// The string const has already converted to lower case
 			int locOfKeyword = canonicalizedStrConst.indexOf(keywordInStringConst);
 			if (locOfKeyword == 0 						// Either the keyword is at the beginning of the string
 				|| canonicalizedStrConst.charAt(locOfKeyword - 1) == ' ')		// Or it's an complete word
@@ -367,7 +369,17 @@ class KeywordInspector
 		
 		// Record current Jimple statement
 		IntTag unitNumTag = (IntTag)(curUnit.getTag("unitNum"));
-		jimpleWithKeywords.add(unitNumTag.getIntInString() + ',' + keywordInUnit + ',' + curUnitInString);
+		
+		// Jimple with keywords line format:
+		// Jimple ID, keyword, package name, Jimple statement
+		String jimpleWithKeywordsLine = String.format(
+				"%d,%s,%s,%s", 
+				unitNumTag.getInt(), 
+				keywordInUnit, 
+				curClass.getPackageName(), 
+				curUnitInString);
+		
+		jimpleWithKeywords.add(jimpleWithKeywordsLine);
 		
 		JimpleHit jimpleHitInst = new JimpleHit();
 		jimpleHitInst.jimple = curUnit;
@@ -619,6 +631,7 @@ class KeywordInspector
 /**
 
 	Data class used for recording info on Jimple statement hit.
+	In order to further investigate the root caller of each Jimple statement.
 
  */
 class JimpleHit

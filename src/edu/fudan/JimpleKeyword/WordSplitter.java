@@ -13,6 +13,7 @@ import java.util.StringTokenizer;
  */
 class WordSplitter {
 	
+	// Keywords dictionary used for word splitting
 	private Set<String> dictForWordSplit;
 	
 	WordSplitter(Set<String> dictForWordSplit)
@@ -293,6 +294,13 @@ class WordSplitter {
 		return words;
 	}
 	
+	/**
+	
+		Find out the words in a given sentence with 
+		delimiters in sentence, the case changes and
+		the words in keywords dictionary.
+
+	 */
 	List<String> splitWords(String sentence)
 	{
 		//

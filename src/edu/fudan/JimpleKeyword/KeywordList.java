@@ -102,6 +102,9 @@ public class KeywordList
 	 
 		Specify which keyword is in given text.
 		If given text contains no keyword, null is returned.
+		
+		All keywords returned is in lower case 
+		in order to ignore case
 
 	 */
 	String figureOutKeyword(String text)
