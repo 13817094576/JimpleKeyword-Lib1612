@@ -56,6 +56,9 @@ class KeywordInspector
 	
 	private Set<String> libraryPackageName;
 	
+	private Set<String> keywordsInAppPackage;
+	private Set<String> keywordsInLibPackage;
+	
 	//
 	// Enumeration on Jimple statement status
 	// on initial quick judgement
@@ -396,8 +399,17 @@ class KeywordInspector
 		// Record the keywords and its corresponding package
 		// Here we record package name as key
 		// since a keyword may appears in multiple packages
-		keywordsInPackage.add(curClass.getPackageName() + ',' + keywordInUnit);
-		
+		String curPackageName = curClass.getPackageName();
+		String keywordInPackageLine = curPackageName + ',' + keywordInUnit;
+		keywordsInPackage.add(keywordInPackageLine);
+		if (curPackageName.startsWith(Main.apkCompanyId))
+		{
+			keywordsInAppPackage.add(keywordInPackageLine);
+		}
+		else
+		{
+			keywordsInLibPackage.add(keywordInPackageLine);
+		}
 	}
 
 	/**
@@ -634,6 +646,9 @@ class KeywordInspector
 		jimpleUsingHashMap = new ArrayList<String>();
 		libraryPackageName = new HashSet<String>();
 		
+		keywordsInAppPackage = new HashSet<String>();
+		keywordsInLibPackage = new HashSet<String>();
+		
 		//
 		// Scan Jimple statements
 		// and record the information we interested in
@@ -671,6 +686,16 @@ class KeywordInspector
 	Set<String> getLibraryPackageName()
 	{
 		return libraryPackageName;
+	}
+	
+	Set<String> getKeywordsInAppPackage()
+	{
+		return keywordsInAppPackage;
+	}
+	
+	Set<String> getKeywordsInLibPackage()
+	{
+		return keywordsInLibPackage;
 	}
 }
 

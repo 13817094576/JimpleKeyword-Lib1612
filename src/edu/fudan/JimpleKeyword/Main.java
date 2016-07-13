@@ -373,6 +373,24 @@ public class Main
 		}
 		System.out.println("Library Packages <<<<<<<<<<");
 		
+		//
+		// Print the keywords in app package and lib package
+		Set<String> keywordsInAppPackage = keywordInspector.getKeywordsInAppPackage();
+		System.out.println("Keywords in App Package >>>>>>>>>>");
+		for (String keyword : keywordsInAppPackage)
+		{
+			System.out.println(keyword);
+		}
+		System.out.println("Keywords in App Package <<<<<<<<<<");
+		
+		Set<String> keywordsInLibPackage = keywordInspector.getKeywordsInLibPackage();
+		System.out.println("Keywords in Lib Package >>>>>>>>>>");
+		for (String keyword : keywordsInLibPackage)
+		{
+			System.out.println(keyword);
+		}
+		System.out.println("Keywords in Lib Package <<<<<<<<<<");
+		
 		// Exit normally
 	}
 
