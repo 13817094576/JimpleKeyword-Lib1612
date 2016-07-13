@@ -15,6 +15,7 @@ import soot.jimple.infoflow.android.IMethodSpec;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.AndroidSourceSinkManager.LayoutMatchingMode;
 import soot.jimple.infoflow.android.data.AndroidMethod;
+import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
@@ -29,7 +30,15 @@ public class Main
 {		
 	//
 	// App-wide program status
+	
+	// Info on APK
 	public static IInfoflowCFG cfgOfApk;
+	
+	public static String apkPackageName;
+	
+	// The company identifier of an APK is 
+	// extracted from the first 2 parts of package name
+	public static String apkCompanyId;
 	
 	private static void ShowUsage()
 	{
@@ -66,6 +75,38 @@ public class Main
 			System.err.println("Config File AndroidCallbacks.txt missing\nAborted");
 			throw new FileSystemNotFoundException("Config File AndroidCallbacks.txt missing");
 		}		
+	}
+	
+	/**
+	 
+		Get several leading parts of a package/class full name.
+	
+	 */
+	private static String getLeadingPartsOfName(String name, int partsCount)
+	{
+		int dotPos = -1;
+		for (int i=0; i<partsCount; i++)
+		{
+			//
+			// Find position of next dot
+			dotPos = name.indexOf('.', dotPos + 1);
+			
+			//
+			// Check if given name has less parts than we want
+			if (dotPos < 0)
+			{
+				//
+				// If given name has less parts than we want
+				// return the whole name
+				return name;
+			}
+		}
+		
+		//
+		// The prevDotPos index is set to
+		// the dot after the parts we want
+		String leadingParts = name.substring(0, dotPos);
+		return leadingParts;
 	}
 	
 	private static void AnalyzeApkWithFlowDroid(String androidJar, String apkFile)
@@ -134,8 +175,18 @@ public class Main
 		//
 		// Save some analysis results to app-wide program status
 		cfgOfApk = app.getCFG();
+		
+		//
+		// Process manifest file extract relating info
+		
+		// Process manifest file
+		ProcessManifest manifestHandler = new ProcessManifest();
+		manifestHandler.loadManifestFile(apkFile);
+		
+		// Extract info from manifest file
+		Main.apkPackageName = manifestHandler.getPackageName();
+		Main.apkCompanyId = getLeadingPartsOfName(Main.apkPackageName, 2);
 	}
-	
 	
 	public static void main(String[] args) 
 	{
@@ -311,6 +362,16 @@ public class Main
 			System.out.println(curRootCallerClassInfo);
 		}
 		System.out.println("Root Caller Activity Classes <<<<<<<<<<");
+		
+		//
+		// Print the names of library packages
+		Set<String> libraryPackageName = keywordInspector.getLibraryPackageName();
+		System.out.println("Library Packages >>>>>>>>>>");
+		for (String curPackageName : libraryPackageName)
+		{
+			System.out.println(curPackageName);
+		}
+		System.out.println("Library Packages <<<<<<<<<<");
 		
 		// Exit normally
 	}

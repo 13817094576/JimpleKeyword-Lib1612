@@ -54,6 +54,8 @@ class KeywordInspector
 	// Record info on Jimple statement hit for inspecting root classes
 	private List<JimpleHit> jimpleHit;
 	
+	private Set<String> libraryPackageName;
+	
 	//
 	// Enumeration on Jimple statement status
 	// on initial quick judgement
@@ -402,6 +404,9 @@ class KeywordInspector
 		 
 		Scanning the Jimple statements which are though reachable by FlowDroid,
 		and record the information we care.
+		
+		THIS METHOD IS OBSOLETE.
+		Inspect the code of this method carefully before using.
 	
 	 */
 	private void scanJimpleReachableOnly()
@@ -439,6 +444,36 @@ class KeywordInspector
 	
 	/**
 	 
+		Inspect the package name record relating info
+
+	 */
+	private void inspectPackageName(String packageName)
+	{
+		//
+		// Canonicalize package name
+		packageName = packageName.trim();
+		
+		//
+		// Skip empty package name
+		if (packageName.isEmpty())
+		{
+			return;
+		}
+		
+		//
+		// Skip package from the same company of the app
+		if (packageName.startsWith(Main.apkCompanyId))
+		{
+			return;
+		}
+		
+		//
+		// Record package name
+		libraryPackageName.add(packageName);
+	}
+	
+	/**
+	 
 		Scanning the classes with FlowDroid
 		and record the information we care.
 
@@ -457,6 +492,11 @@ class KeywordInspector
 		while (classIter.hasNext())
 		{
 			SootClass curClass = classIter.next();
+			
+			//
+			// Record package name for statistics on package in app
+			String curPackageName = curClass.getPackageName();
+			inspectPackageName(curPackageName);
 			
 			//
 			// Traverse the methods in a class
@@ -592,6 +632,7 @@ class KeywordInspector
 		jimpleHit = new ArrayList<JimpleHit>();
 		keywordsHit = new HashSet<String>();
 		jimpleUsingHashMap = new ArrayList<String>();
+		libraryPackageName = new HashSet<String>();
 		
 		//
 		// Scan Jimple statements
@@ -625,6 +666,11 @@ class KeywordInspector
 	List<String> getJimpleUsingHashMap()
 	{
 		return jimpleUsingHashMap;
+	}
+	
+	Set<String> getLibraryPackageName()
+	{
+		return libraryPackageName;
 	}
 }
 
