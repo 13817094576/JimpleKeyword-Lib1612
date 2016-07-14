@@ -50,8 +50,8 @@ email
 favourit count
 first name
 firstnam
-followe count
-friend count
+followe
+friend
 friendship gender
 friendship nicknam
 friendship pictur
@@ -70,6 +70,7 @@ latitud
 loca
 longitud
 mail
+messag cont
 mobil
 middle name
 middlenam
