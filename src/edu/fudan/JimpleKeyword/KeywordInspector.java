@@ -454,11 +454,34 @@ class KeywordInspector
 		}
 	}
 	
+	//
+	// Some fixed system packages to exclude
+	static String[] fixedSystemPackages = { "java.", "dalvik.", "android.", "javax." };
+	
+	private boolean isSystemPackage(String packageName)
+	{
+		//
+		// Check if given package name starts with
+		// some known system package name
+		for (String curSystemPackages : fixedSystemPackages)
+		{
+			if (packageName.startsWith(curSystemPackages))
+			{
+				return true;
+			}
+		}
+		
+		//
+		// Given package name doesn't start with
+		// any known system package name
+		return false;
+	}
+	
 	/**
 	 
 		Inspect the package name record relating info
-
-	 */
+	
+	*/
 	private void inspectPackageName(String packageName)
 	{
 		//
@@ -480,8 +503,12 @@ class KeywordInspector
 		}
 		
 		//
+		// We only expect the leading 3 parts of package name
+		String libPackage = SootUtil.getLeadingPartsOfName(packageName, 3);
+		
+		//
 		// Record package name
-		libraryPackageName.add(packageName);
+		libraryPackageName.add(libPackage);
 	}
 	
 	/**
@@ -506,8 +533,15 @@ class KeywordInspector
 			SootClass curClass = classIter.next();
 			
 			//
-			// Record package name for statistics on package in app
+			// Skip system packages
 			String curPackageName = curClass.getPackageName();
+			if (isSystemPackage(curPackageName))
+			{
+				continue;
+			}
+			
+			//
+			// Record package name for statistics on package in app
 			inspectPackageName(curPackageName);
 			
 			//

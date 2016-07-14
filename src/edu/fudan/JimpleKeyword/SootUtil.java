@@ -30,6 +30,38 @@ class SootUtil
 		// Then return whether the method has active body
 		return m.hasActiveBody();
 	}
+	
+	/**
+	 
+		Get several leading parts of a package/class full name.
+	
+	 */
+	static String getLeadingPartsOfName(String name, int partsCount)
+	{
+		int dotPos = -1;
+		for (int i=0; i<partsCount; i++)
+		{
+			//
+			// Find position of next dot
+			dotPos = name.indexOf('.', dotPos + 1);
+			
+			//
+			// Check if given name has less parts than we want
+			if (dotPos < 0)
+			{
+				//
+				// If given name has less parts than we want
+				// return the whole name
+				return name;
+			}
+		}
+		
+		//
+		// The prevDotPos index is set to
+		// the dot after the parts we want
+		String leadingParts = name.substring(0, dotPos);
+		return leadingParts;
+	}
 }
 
 /**

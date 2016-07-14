@@ -77,38 +77,6 @@ public class Main
 		}		
 	}
 	
-	/**
-	 
-		Get several leading parts of a package/class full name.
-	
-	 */
-	private static String getLeadingPartsOfName(String name, int partsCount)
-	{
-		int dotPos = -1;
-		for (int i=0; i<partsCount; i++)
-		{
-			//
-			// Find position of next dot
-			dotPos = name.indexOf('.', dotPos + 1);
-			
-			//
-			// Check if given name has less parts than we want
-			if (dotPos < 0)
-			{
-				//
-				// If given name has less parts than we want
-				// return the whole name
-				return name;
-			}
-		}
-		
-		//
-		// The prevDotPos index is set to
-		// the dot after the parts we want
-		String leadingParts = name.substring(0, dotPos);
-		return leadingParts;
-	}
-	
 	private static void AnalyzeApkWithFlowDroid(String androidJar, String apkFile)
 	{
 		//
@@ -185,7 +153,7 @@ public class Main
 		
 		// Extract info from manifest file
 		Main.apkPackageName = manifestHandler.getPackageName();
-		Main.apkCompanyId = getLeadingPartsOfName(Main.apkPackageName, 2);
+		Main.apkCompanyId = SootUtil.getLeadingPartsOfName(Main.apkPackageName, 2);
 	}
 	
 	public static void main(String[] args) 
