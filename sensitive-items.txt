@@ -1,0 +1,115 @@
+account name
+acct name
+address
+age range
+android id
+app id
+app key
+app secret
+app token
+app channel
+app key
+app list
+app name
+app pkg
+app runtime list
+app start
+app start timestamp
+app top count
+app version
+apps all
+apps incr
+apps uninstall
+birthdai
+birthdat
+birthyear
+birth date
+bifollowe count
+bssid
+carrier
+cell locat
+card no
+card type
+city
+citi
+client ip
+contact number
+countri
+date of birth
+devic id
+devic number
+devic os
+devic uuid
+display name
+educ
+educ school
+educ school type
+educ year
+education
+email
+favourit count
+first name
+firstnam
+followe count
+friend count
+friendship gender
+friendship nicknam
+friendship pictur
+friendship secret type
+friendship sns uid
+friendship sns url
+gender
+home addr
+home address
+imsi
+installed apps
+interested in
+last name
+lastnam
+latitud
+loca
+longitud
+mail
+mobil
+middle name
+middlenam
+network type
+nicknam
+oauth token
+packag
+password
+payment
+phone number
+polotical
+provinc
+relationship statu
+religion
+screen size
+sdk runtime len
+sdk ver
+secrettype
+security set
+serial no
+server host
+server ip
+share content
+share count
+signmd
+sns user
+sns uid
+ssid
+sso sdk version
+status count
+street
+sys ver
+third party id
+top task
+true name
+updat time
+usernam
+work compani
+work employ
+work end date
+work posit
+work start date
+zip code
