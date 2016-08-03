@@ -320,6 +320,38 @@ class KeywordInspector
 		return true;
 	}
 	
+	private boolean isStatementUsingHashMap(String unitInString)
+	{
+		if (unitInString.contains("java.util.HashMap")
+				&& (unitInString.contains("put(") || unitInString.contains("get(")))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	/**
+
+		Inspect Jimple statements using HashMap class
+		and record relating information
+
+	 */
+	private void inspectHashMapStatement(Unit curUnit, String curUnitInString)
+	{
+		//
+		// Skip parameters validation currently.
+		
+		//
+		// Record statement using HashMap if needed
+		if (Config.recordJimpleUsingHashMap)
+		{
+			jimpleUsingHashMap.add(curUnitInString);
+		}
+	}
+	
 	/**
 	 
 		Inspect given Jimple statement
@@ -343,14 +375,10 @@ class KeywordInspector
 		String curUnitInString = curUnit.toString();
 		
 		//
-		// Check if current statement uses HashMap class
-		if (Config.recordJimpleUsingHashMap)
+		// Perform extra actions on statements using HashMap
+		if (isStatementUsingHashMap(curUnitInString))
 		{
-			if (curUnitInString.contains("java.util.HashMap")
-				&& (curUnitInString.contains("put(") || curUnitInString.contains("get(")))
-			{
-				jimpleUsingHashMap.add(curUnitInString);
-			}
+			inspectHashMapStatement(curUnit, curUnitInString);
 		}
 		
 		// Check if current statement contains any known keyword
