@@ -25,6 +25,7 @@ import soot.Value;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
+import soot.jimple.SpecialInvokeExpr;
 import soot.util.queue.QueueReader;
 
 /**
@@ -249,6 +250,46 @@ class KeywordInspector
 	}
 	
 	/**
+
+		Judge if a given invoke stmt related to key-value operations.
+		
+		We check that if the invoked method has 2 parameters and 
+		the type of the first parameter is String.
+
+	 */
+	private boolean isInvokeStmtContainKeyValue(Unit unit)
+	{
+		//
+		// Check if current invoke statement has 2 arguments
+		// and the first one is string.
+		// If so, we think this statement is interesting
+		InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
+		
+		//
+		// Skip special invoke statements
+		// Key-Value pair doesn't likely appear in special invokes
+		if (invokeExpr instanceof SpecialInvokeExpr)
+		{
+			return false;
+		}
+		
+		// Check if the method invoked has 2 arguments
+		if (invokeExpr.getArgCount() == 2)
+		{
+			// Check if the type of first argument is String
+			String typeOfFirstArg = invokeExpr.getArg(0).getType().toString();
+			if (typeOfFirstArg.equals("java.lang.String"))
+			{
+				return true;
+			}
+		}
+		
+		//
+		// Current invoke stmt doesn't satisfy specified conditions
+		return false;
+	}
+	
+	/**
 	 
 		This function performs inital Jimple statement filtering.
 		
@@ -271,16 +312,9 @@ class KeywordInspector
 		// Check if current invoke statement has 2 arguments
 		// and the first one is string.
 		// If so, we think this statement is interesting
-		InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
-		// Check if the method invoked has 2 arguments
-		if (invokeExpr.getArgCount() == 2)
+		if (isInvokeStmtContainKeyValue(unit))
 		{
-			// Check if the type of first argument is String
-			String typeOfFirstArg = invokeExpr.getArg(0).getType().toString();
-			if (typeOfFirstArg.equals("java.lang.String"))
-			{
-				return JimpleInitialJudgeStatus.JIMPLE_DEFINITE_HIT;
-			}
+			return JimpleInitialJudgeStatus.JIMPLE_DEFINITE_HIT;
 		}
 		
 		String unitInString = unit.toString();
@@ -402,7 +436,7 @@ class KeywordInspector
 		and record relating information
 
 	 */
-	private void inspectHashMapStatement(Unit curUnit, String curUnitInString, String curClassName)
+	private void inspectHashMapStatement(Unit curUnit, String curUnitInString)
 	{
 		//
 		// Skip parameters validation currently.
@@ -412,13 +446,6 @@ class KeywordInspector
 		if (Config.recordJimpleUsingHashMap)
 		{
 			jimpleUsingHashMap.add(curUnitInString);
-		}
-		
-		//
-		// Record the data block current HashMap invoke in
-		if (curUnit instanceof InvokeStmt)
-		{
-			recordStatementInDataBlock(curUnit, curUnitInString, curClassName);
 		}
 	}
 	
@@ -448,7 +475,14 @@ class KeywordInspector
 		// Perform extra actions on statements using HashMap
 		if (isStatementUsingHashMap(curUnitInString))
 		{
-			inspectHashMapStatement(curUnit, curUnitInString, curClass.getName());
+			inspectHashMapStatement(curUnit, curUnitInString);
+		}
+		
+		//
+		// Record key-value invocation in on the same data block instance
+		if (isInvokeStmtContainKeyValue(curUnit))
+		{
+			recordStatementInDataBlock(curUnit, curUnitInString, curClass.getName());
 		}
 		
 		// Check if current statement contains any known keyword
