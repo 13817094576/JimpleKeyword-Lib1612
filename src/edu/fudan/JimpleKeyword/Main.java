@@ -359,6 +359,14 @@ public class Main
 		}
 		System.out.println("Keywords in Lib Package <<<<<<<<<<");
 		
+		List<String> dataBlockStatements = keywordInspector.getDataBlockStatement();
+		System.out.println("Data Block Statements >>>>>>>>>>");
+		for (String stat : dataBlockStatements)
+		{
+			System.out.println(stat);
+		}
+		System.out.println("Data Block Statements <<<<<<<<<<");
+		
 		// Exit normally
 	}
 

@@ -2,18 +2,27 @@ package edu.fudan.JimpleKeyword;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import soot.Local;
 import soot.MethodOrMethodContext;
+import soot.PointsToAnalysis;
+import soot.PointsToSet;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
+import soot.Value;
+import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 import soot.util.queue.QueueReader;
@@ -53,6 +62,8 @@ class KeywordInspector
 	private List<String> jimpleUsingHashMap;
 	// Record info on Jimple statement hit for inspecting root classes
 	private List<JimpleHit> jimpleHit;
+	
+	private List<String> dataBlockStatement;
 	
 	private Set<String> libraryPackageName;
 	
@@ -322,7 +333,7 @@ class KeywordInspector
 	
 	private boolean isStatementUsingHashMap(String unitInString)
 	{
-		if (unitInString.contains("java.util.HashMap")
+		if (unitInString.contains("HashMap")
 				&& (unitInString.contains("put(") || unitInString.contains("get(")))
 		{
 			return true;
@@ -333,13 +344,65 @@ class KeywordInspector
 		}
 	}
 	
+	// Integer in string matcher
+	// Not needed to initialize multiple times
+	Pattern intPattern = Pattern.compile("[1-9][0-9]*");
+	
+	private void recordStatementInDataBlock(Unit curUnit, String curUnitInString, String curClassName)
+	{
+		//
+		// Get this parameter of invoke expression
+		InvokeExpr invokeExpr = ((InvokeStmt)curUnit).getInvokeExpr();
+		Value thisArg = null;
+		if (invokeExpr instanceof InstanceInvokeExpr)
+		{
+			InstanceInvokeExpr instanceInvokeExpr = (InstanceInvokeExpr)invokeExpr;
+			thisArg = instanceInvokeExpr.getBase();
+		}
+		else
+		{
+			//
+			// Skip invoke statement without this pointer
+			return;
+		}
+		
+		//
+		// Find out the potential values of this argument
+		PointsToAnalysis pointToAnalysis = Scene.v().getPointsToAnalysis();
+		PointsToSet thisValue = null;
+		if (thisArg instanceof Local)
+		{
+			thisValue = pointToAnalysis.reachingObjects((Local)thisArg);
+		}
+		else if (thisArg instanceof SootField)
+		{
+			thisValue = pointToAnalysis.reachingObjects((SootField)thisArg);
+		}
+		
+		if (thisValue == null || thisValue.isEmpty())
+		{
+			return;
+		}
+		
+		//
+		// Extract the alloc node num from PointsToSet
+		String thisInStr = thisValue.toString();
+		Matcher intMatcher = intPattern.matcher(thisInStr);
+		while (intMatcher.find())
+		{
+			// Record current statement in data block statement list
+			String thisObjId = intMatcher.group();
+			dataBlockStatement.add(thisObjId + ',' + curClassName + ',' + curUnitInString);	
+		}
+	}
+	
 	/**
 
 		Inspect Jimple statements using HashMap class
 		and record relating information
 
 	 */
-	private void inspectHashMapStatement(Unit curUnit, String curUnitInString)
+	private void inspectHashMapStatement(Unit curUnit, String curUnitInString, String curClassName)
 	{
 		//
 		// Skip parameters validation currently.
@@ -349,6 +412,13 @@ class KeywordInspector
 		if (Config.recordJimpleUsingHashMap)
 		{
 			jimpleUsingHashMap.add(curUnitInString);
+		}
+		
+		//
+		// Record the data block current HashMap invoke in
+		if (curUnit instanceof InvokeStmt)
+		{
+			recordStatementInDataBlock(curUnit, curUnitInString, curClassName);
 		}
 	}
 	
@@ -378,7 +448,7 @@ class KeywordInspector
 		// Perform extra actions on statements using HashMap
 		if (isStatementUsingHashMap(curUnitInString))
 		{
-			inspectHashMapStatement(curUnit, curUnitInString);
+			inspectHashMapStatement(curUnit, curUnitInString, curClass.getName());
 		}
 		
 		// Check if current statement contains any known keyword
@@ -711,10 +781,16 @@ class KeywordInspector
 		keywordsInAppPackage = new HashSet<String>();
 		keywordsInLibPackage = new HashSet<String>();
 		
+		dataBlockStatement = new ArrayList<String>();
+		
 		//
 		// Scan Jimple statements
 		// and record the information we interested in
 		scanJimple();
+		
+		//
+		// Process output info
+		Collections.sort(dataBlockStatement);
 	}
 	
 	//
@@ -758,6 +834,11 @@ class KeywordInspector
 	Set<String> getKeywordsInLibPackage()
 	{
 		return keywordsInLibPackage;
+	}
+	
+	List<String> getDataBlockStatement()
+	{
+		return dataBlockStatement;
 	}
 }
 
