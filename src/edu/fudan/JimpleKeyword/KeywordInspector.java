@@ -65,6 +65,9 @@ class KeywordInspector
 	private List<JimpleHit> jimpleHit;
 	
 	private List<String> dataBlockStatement;
+	// Data block with keywords may hit multiple times.
+	// There may be multiple statements in a data block containing keywords
+	private Set<String> dataBlockWithKeywordsIds;
 	
 	private Set<String> libraryPackageName;
 	
@@ -382,7 +385,15 @@ class KeywordInspector
 	// Not needed to initialize multiple times
 	Pattern intPattern = Pattern.compile("[1-9][0-9]*");
 	
-	private void recordStatementInDataBlock(Unit curUnit, String curUnitInString, String curClassName)
+	/**
+
+		Given statement contains key-value pair operation.
+		
+		Record the given statement in corresponding data block.
+		and return the IDs of data block objects.
+
+	 */
+	private List<String> recordStatementInDataBlock(Unit curUnit, String curUnitInString, String curClassName, int unitNum)
 	{
 		//
 		// Get this parameter of invoke expression
@@ -397,7 +408,7 @@ class KeywordInspector
 		{
 			//
 			// Skip invoke statement without this pointer
-			return;
+			return null;
 		}
 		
 		//
@@ -415,19 +426,30 @@ class KeywordInspector
 		
 		if (thisValue == null || thisValue.isEmpty())
 		{
-			return;
+			return null;
 		}
 		
 		//
 		// Extract the alloc node num from PointsToSet
+		List<String> thisObjIdList = new ArrayList<String>();
 		String thisInStr = thisValue.toString();
 		Matcher intMatcher = intPattern.matcher(thisInStr);
 		while (intMatcher.find())
 		{
-			// Record current statement in data block statement list
+			// Find out the object ID of "this" pointer
 			String thisObjId = intMatcher.group();
-			dataBlockStatement.add(thisObjId + ',' + curClassName + ',' + curUnitInString);	
+			
+			// Record the data block object ID
+			// and it will be returned later
+			thisObjIdList.add(thisObjId);
+			
+			// Record current statement in data block statement list
+			String statement = String.format("%s,%d,%s,%s", 
+					thisObjId, unitNum, curClassName, curUnitInString);		
+			dataBlockStatement.add(statement);	
 		}
+		
+		return thisObjIdList;
 	}
 	
 	/**
@@ -471,6 +493,9 @@ class KeywordInspector
 		
 		String curUnitInString = curUnit.toString();
 		
+		// Record current Jimple statement
+		IntTag unitNumTag = (IntTag)(curUnit.getTag("unitNum"));
+		
 		//
 		// Perform extra actions on statements using HashMap
 		if (isStatementUsingHashMap(curUnitInString))
@@ -480,9 +505,10 @@ class KeywordInspector
 		
 		//
 		// Record key-value invocation in on the same data block instance
+		List<String> dataBlockObjIdList = null;
 		if (isInvokeStmtContainKeyValue(curUnit))
 		{
-			recordStatementInDataBlock(curUnit, curUnitInString, curClass.getName());
+			dataBlockObjIdList = recordStatementInDataBlock(curUnit, curUnitInString, curClass.getName(), unitNumTag.getInt());
 		}
 		
 		// Check if current statement contains any known keyword
@@ -503,9 +529,6 @@ class KeywordInspector
 				return;
 			}
 		}
-		
-		// Record current Jimple statement
-		IntTag unitNumTag = (IntTag)(curUnit.getTag("unitNum"));
 		
 		// Jimple with keywords line format:
 		// Jimple ID, keyword, package name, Jimple statement
@@ -541,6 +564,13 @@ class KeywordInspector
 		else
 		{
 			keywordsInLibPackage.add(keywordInPackageLine);
+		}
+		
+		//
+		// Record the statements with keywords in data blocks
+		if (dataBlockObjIdList != null)
+		{
+			dataBlockWithKeywordsIds.addAll(dataBlockObjIdList);
 		}
 	}
 
@@ -816,6 +846,7 @@ class KeywordInspector
 		keywordsInLibPackage = new HashSet<String>();
 		
 		dataBlockStatement = new ArrayList<String>();
+		dataBlockWithKeywordsIds = new HashSet<String>();
 		
 		//
 		// Scan Jimple statements
@@ -873,6 +904,28 @@ class KeywordInspector
 	List<String> getDataBlockStatement()
 	{
 		return dataBlockStatement;
+	}
+	
+	List<String> getDataBlockWithKeywords()
+	{
+		// Initialize result list
+		List<String> dataBlockStatWithKeywords = new ArrayList<String>();
+		
+		//
+		// Scan the data block statements list
+		// and pick out the statements with keywords
+		for (String statement : dataBlockStatement)
+		{
+			for (String dataBlockWithKeywordsId : dataBlockWithKeywordsIds)
+			{
+				if (statement.startsWith(dataBlockWithKeywordsId))
+				{
+					dataBlockStatWithKeywords.add(statement);
+				}
+			}
+		}
+		
+		return dataBlockStatWithKeywords;
 	}
 }
 

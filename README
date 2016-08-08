@@ -19,3 +19,6 @@ since the Jimple statement may also contains comma ','.
 
 For example:
 857316,password,specialinvoke $r7.<twitter4j.HttpParameter: void <init>(java.lang.String,java.lang.String)>("x_auth_password", $r2)
+
+The format of Data Block Statement section is:
+Object ID, Statement ID, Jimple Statement

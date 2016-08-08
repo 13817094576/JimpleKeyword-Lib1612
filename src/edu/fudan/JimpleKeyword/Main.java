@@ -360,12 +360,20 @@ public class Main
 		System.out.println("Keywords in Lib Package <<<<<<<<<<");
 		
 		List<String> dataBlockStatements = keywordInspector.getDataBlockStatement();
-		System.out.println("Data Block Statements >>>>>>>>>>");
+		System.out.println("Raw Data Block >>>>>>>>>>");
 		for (String stat : dataBlockStatements)
 		{
 			System.out.println(stat);
 		}
-		System.out.println("Data Block Statements <<<<<<<<<<");
+		System.out.println("Raw Data Block <<<<<<<<<<");
+		
+		List<String> dataBlockWithKeywords = keywordInspector.getDataBlockWithKeywords();
+		System.out.println("Data Block with Keywords >>>>>>>>>>");
+		for (String stat : dataBlockWithKeywords)
+		{
+			System.out.println(stat);
+		}
+		System.out.println("Data Block with Keywords <<<<<<<<<<");
 		
 		// Exit normally
 	}
