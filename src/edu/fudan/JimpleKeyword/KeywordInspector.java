@@ -64,7 +64,10 @@ class KeywordInspector
 	// Record info on Jimple statement hit for inspecting root classes
 	private List<JimpleHit> jimpleHit;
 	
+	// Data block statements for output
 	private List<String> dataBlockStatement;
+	// Data block raw statements for further processing
+	private List<DataBlockRawStat> dataBlockRawStat;
 	// Data block with keywords may hit multiple times.
 	// There may be multiple statements in a data block containing keywords
 	private Set<String> dataBlockWithKeywordsIds;
@@ -446,7 +449,13 @@ class KeywordInspector
 			// Record current statement in data block statement list
 			String statement = String.format("%s,%d,%s,%s", 
 					thisObjId, unitNum, curClassName, curUnitInString);		
-			dataBlockStatement.add(statement);	
+			dataBlockStatement.add(statement);
+
+			// Record raw statement for further processing
+			DataBlockRawStat rawStat = new DataBlockRawStat();
+			rawStat.dataBlockId = thisObjId;
+			rawStat.statement = curUnit;
+			dataBlockRawStat.add(rawStat);
 		}
 		
 		return thisObjIdList;
@@ -846,6 +855,7 @@ class KeywordInspector
 		keywordsInLibPackage = new HashSet<String>();
 		
 		dataBlockStatement = new ArrayList<String>();
+		dataBlockRawStat = new ArrayList<DataBlockRawStat>();
 		dataBlockWithKeywordsIds = new HashSet<String>();
 		
 		//
@@ -927,6 +937,70 @@ class KeywordInspector
 		
 		return dataBlockStatWithKeywords;
 	}
+
+	private List<Unit> pickOutRawStatInDataBlocksWithKeywords()
+	{
+		// Initialize result list
+		List<Unit> rawStatList = new ArrayList<Unit>();
+		
+		//
+		// Scan the data block statements list
+		// and pick out the statements with keywords
+		for (DataBlockRawStat dataBlockStat : dataBlockRawStat)
+		{
+			for (String dataBlockWithKeywordsId : dataBlockWithKeywordsIds)
+			{
+				if (dataBlockStat.dataBlockId.equals(dataBlockWithKeywordsId))
+				{
+					rawStatList.add(dataBlockStat.statement);
+				}
+			}
+		}
+		
+		return rawStatList;		
+	}
+	
+	Map<String, Integer> getKeywordsInDataBlocks()
+	{
+		//
+		// Pick out raw statements in data blocks with keywords
+		List<Unit> statList = pickOutRawStatInDataBlocksWithKeywords();
+
+		//
+		// Initialize output statistic variables
+		Map<String, Integer> keywordsStat = new HashMap<String, Integer>();
+		
+		for (Unit stat : statList)
+		{
+			//
+			// Extract the first argument in statement
+			// Here we assume that the statement are all key-value pair operations
+			InvokeExpr invokeExpr = ((InvokeStmt)stat).getInvokeExpr();
+			String firstArgInStr = invokeExpr.getArg(0).toString();
+			
+			//
+			// We only interested in constant value key
+			if (firstArgInStr.charAt(0) == '$')
+			{
+				continue;
+			}
+			
+			//
+			// Increment the counter for keywords
+			if (keywordsStat.containsKey(firstArgInStr))
+			{
+				Integer keywordCounter = keywordsStat.get(firstArgInStr);
+				keywordCounter++;
+				keywordsStat.put(firstArgInStr, keywordCounter);
+			}
+			else
+			{
+				keywordsStat.put(firstArgInStr, 1);
+			}
+		}
+		
+		return keywordsStat;
+	}
 }
 
 /**
@@ -941,4 +1015,15 @@ class JimpleHit
 	
 	int keywordUnitNum;
 	String keyword;
+}
+
+/**
+
+	Data class for recording statements in data block for further processing
+
+ */
+class DataBlockRawStat
+{
+	Unit statement;
+	String dataBlockId;
 }

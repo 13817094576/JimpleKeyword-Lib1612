@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.FileSystemNotFoundException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import soot.Scene;
@@ -374,6 +376,14 @@ public class Main
 			System.out.println(stat);
 		}
 		System.out.println("Data Block with Keywords <<<<<<<<<<");
+		
+		Map<String, Integer> dataBlockKeywordStat = keywordInspector.getKeywordsInDataBlocks();
+		System.out.println("Keywords in Data Blocks >>>>>>>>>>");
+		for (Entry<String, Integer> curKeywordStat : dataBlockKeywordStat.entrySet())
+		{
+			System.out.println(curKeywordStat.getKey() + ',' + curKeywordStat.getValue());
+		}
+		System.out.println("Keywords in Data Blocks <<<<<<<<<<");
 		
 		// Exit normally
 	}
