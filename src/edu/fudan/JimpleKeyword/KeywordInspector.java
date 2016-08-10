@@ -161,19 +161,6 @@ class KeywordInspector
 		return stringConsts;
 	}
 	
-	private String joinString(List<String> strList, char seperator)
-	{
-		StringBuilder outputBuilder = new StringBuilder();
-		
-		for (String str : strList)
-		{
-			outputBuilder.append(str);
-			outputBuilder.append(seperator);
-		}
-		
-		return outputBuilder.toString();
-	}
-	
 	private String canonicalizeStringConst(String stringConst)
 	{
 		//
@@ -194,7 +181,7 @@ class KeywordInspector
 		}
 		
 		// Re-join words to build canonicalized string const
-		String canonicalizedStrConst = joinString(wordsInStrConst, ' ');
+		String canonicalizedStrConst = StringUtil.joinString(wordsInStrConst, ' ');
 		
 		//
 		// Convert canonicalized str const to lower case to ignore case
@@ -379,6 +366,9 @@ class KeywordInspector
 	
 	private boolean isStatementUsingHashMap(String unitInString)
 	{
+		//
+		// Here we only use "HashMap" since HashMap is an interface
+		// There LinkedHashMap etc.
 		if (unitInString.contains("HashMap")
 				&& (unitInString.contains("put(") || unitInString.contains("get(")))
 		{

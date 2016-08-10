@@ -1,7 +1,22 @@
 package edu.fudan.JimpleKeyword;
 
+import java.util.List;
+
 class StringUtil 
 {
+	static String joinString(List<String> strList, char seperator)
+	{
+		StringBuilder outputBuilder = new StringBuilder();
+		
+		for (String str : strList)
+		{
+			outputBuilder.append(str);
+			outputBuilder.append(seperator);
+		}
+		
+		return outputBuilder.toString();
+	}
+	
 	static String unescapeString(String rawString)
 	{
 		// Initialize output variables
