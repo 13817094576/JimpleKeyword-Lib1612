@@ -3,11 +3,14 @@ package edu.fudan.JimpleKeyword;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -999,7 +1002,36 @@ class KeywordInspector
 			}
 		}
 		
-		return keywordsStat;
+		//
+		// Sort the keywords stat
+		
+		List<Entry<String, Integer>> keywordsStatEntryList = new ArrayList<Entry<String, Integer>>();
+		keywordsStatEntryList.addAll(keywordsStat.entrySet());
+		
+		Collections.sort(keywordsStatEntryList, new Comparator<Entry<String, Integer>>() {
+
+			@Override
+			public int compare(Entry<String, Integer> o1,
+					Entry<String, Integer> o2) 
+			{
+				// We sort the list in descendant order
+				return -(o1.getValue() - o2.getValue());
+			}
+			
+		});
+		
+		//
+		// Put sorted keywords stat to a new map
+		
+		Map<String, Integer> resultKeywordsStat = new LinkedHashMap<String, Integer>();
+		for (Entry<String, Integer> keywordsStatEntry : keywordsStatEntryList)
+		{
+			resultKeywordsStat.put(
+					StringUtil.unescapeString(keywordsStatEntry.getKey()), 
+					keywordsStatEntry.getValue());
+		}
+		
+		return resultKeywordsStat;
 	}
 }
 
