@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,6 +72,8 @@ class KeywordInspector
 	private List<String> dataBlockStatement;
 	// Data block raw statements for further processing
 	private List<DataBlockRawStat> dataBlockRawStat;
+	// The raw statements in data blocks which contain keywords
+	private List<DataBlockRawStat> dataBlockWithKeywordsRawStat;
 	// Data block with keywords may hit multiple times.
 	// There may be multiple statements in a data block containing keywords
 	private Set<String> dataBlockWithKeywordsIds;
@@ -830,6 +833,28 @@ class KeywordInspector
 			return null;
 		}
 	}
+
+	private List<DataBlockRawStat> pickOutRawStatInDataBlocksWithKeywords()
+	{
+		// Initialize result list
+		List<DataBlockRawStat> rawStatList = new ArrayList<DataBlockRawStat>();
+		
+		//
+		// Scan the data block statements list
+		// and pick out the statements with keywords
+		for (DataBlockRawStat dataBlockStat : dataBlockRawStat)
+		{
+			for (String dataBlockWithKeywordsId : dataBlockWithKeywordsIds)
+			{
+				if (dataBlockStat.dataBlockId.equals(dataBlockWithKeywordsId))
+				{
+					rawStatList.add(dataBlockStat);
+				}
+			}
+		}
+		
+		return rawStatList;		
+	}
 	
 	KeywordInspector(KeywordList keywordList)
 	{
@@ -865,6 +890,11 @@ class KeywordInspector
 		// Scan Jimple statements
 		// and record the information we interested in
 		scanJimple();
+		
+		//
+		// Pick out raw statements in data blocks which have keywords
+		// for further processing
+		dataBlockWithKeywordsRawStat = pickOutRawStatInDataBlocksWithKeywords();
 		
 		//
 		// Process output info
@@ -941,49 +971,58 @@ class KeywordInspector
 		return dataBlockStatWithKeywords;
 	}
 
-	private List<Unit> pickOutRawStatInDataBlocksWithKeywords()
+	private String extractKeyArgOfStat(Unit unit)
 	{
-		// Initialize result list
-		List<Unit> rawStatList = new ArrayList<Unit>();
+		//
+		// Here we assume that "unit" is an invocatin of
+		// key-value pair operation
+		
+		InvokeExpr invokeExpr = ((InvokeStmt)unit).getInvokeExpr();
+		String firstArgInStr = invokeExpr.getArg(0).toString();
+		
+		return firstArgInStr;
+	}
+	
+	private String extractValidKeyArgOfStat(Unit unit)
+	{
+		String firstArgInStr = extractKeyArgOfStat(unit);
 		
 		//
-		// Scan the data block statements list
-		// and pick out the statements with keywords
-		for (DataBlockRawStat dataBlockStat : dataBlockRawStat)
+		// Check that if the arg is a constant
+		if (firstArgInStr.charAt(0) == '$')
 		{
-			for (String dataBlockWithKeywordsId : dataBlockWithKeywordsIds)
-			{
-				if (dataBlockStat.dataBlockId.equals(dataBlockWithKeywordsId))
-				{
-					rawStatList.add(dataBlockStat.statement);
-				}
-			}
+			return null;
+		}
+
+		//
+		// Check if the arg contain comma
+		if (firstArgInStr.contains(","))
+		{
+			return null;
 		}
 		
-		return rawStatList;		
+		return firstArgInStr;
 	}
 	
 	Map<String, Integer> getKeywordsInDataBlocks()
 	{
 		//
-		// Pick out raw statements in data blocks with keywords
-		List<Unit> statList = pickOutRawStatInDataBlocksWithKeywords();
-
+		// We assume that the dataBlockWithKeywordsRawStat list is initialized
+		assert dataBlockWithKeywordsRawStat != null;
+		
 		//
 		// Initialize output statistic variables
 		Map<String, Integer> keywordsStat = new HashMap<String, Integer>();
 		
-		for (Unit stat : statList)
+		for (DataBlockRawStat rawStat : dataBlockWithKeywordsRawStat)
 		{
 			//
 			// Extract the first argument in statement
 			// Here we assume that the statement are all key-value pair operations
-			InvokeExpr invokeExpr = ((InvokeStmt)stat).getInvokeExpr();
-			String firstArgInStr = invokeExpr.getArg(0).toString();
-			
 			//
 			// We only interested in constant value key
-			if (firstArgInStr.charAt(0) == '$')
+			String firstArgInStr = extractValidKeyArgOfStat(rawStat.statement);
+			if (firstArgInStr == null)
 			{
 				continue;
 			}
@@ -1032,6 +1071,34 @@ class KeywordInspector
 		}
 		
 		return resultKeywordsStat;
+	}
+	
+	Set<String> getSimplfiedDataBlocks()
+	{
+		//
+		// The values will be sorted by TreeSet automatically
+		Set<String> dataBlockStat = new TreeSet<String>();
+		
+		//
+		// Scan all raw statements in data blocks with keywords
+		for (DataBlockRawStat rawStat : dataBlockWithKeywordsRawStat)
+		{
+			// We only  interested in the key argument of
+			// key-value pair operation
+			String constKey = extractValidKeyArgOfStat(rawStat.statement);
+			if (constKey == null)
+			{
+				continue;
+			}
+			
+			// Unescape the key
+			constKey = StringUtil.unescapeString(constKey);
+			
+			String stat = rawStat.dataBlockId + ',' + constKey;
+			dataBlockStat.add(stat);
+		}
+		
+		return dataBlockStat;
 	}
 }
 

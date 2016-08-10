@@ -385,6 +385,14 @@ public class Main
 		}
 		System.out.println("Keywords in Data Blocks <<<<<<<<<<");
 		
+		Set<String> simplifiedDataBlockStat = keywordInspector.getSimplfiedDataBlocks();
+		System.out.println("Simplified Data Blocks >>>>>>>>>>");
+		for (String stat : simplifiedDataBlockStat)
+		{
+			System.out.println(stat);
+		}
+		System.out.println("Simplified Data Blocks <<<<<<<<<<");
+		
 		// Exit normally
 	}
 
