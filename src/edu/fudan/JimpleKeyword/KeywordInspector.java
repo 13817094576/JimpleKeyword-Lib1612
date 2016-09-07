@@ -1034,7 +1034,7 @@ class KeywordInspector
 		
 		//
 		// Initialize output statistic variables
-		Map<String, Integer> keywordsStat = new HashMap<String, Integer>();
+		WordCounter keywordCounter = new WordCounter();
 		
 		for (DataBlockRawStat rawStat : dataBlockWithKeywordsRawStat)
 		{
@@ -1051,48 +1051,12 @@ class KeywordInspector
 			
 			//
 			// Increment the counter for keywords
-			if (keywordsStat.containsKey(firstArgInStr))
-			{
-				Integer keywordCounter = keywordsStat.get(firstArgInStr);
-				keywordCounter++;
-				keywordsStat.put(firstArgInStr, keywordCounter);
-			}
-			else
-			{
-				keywordsStat.put(firstArgInStr, 1);
-			}
+			keywordCounter.Count(firstArgInStr);
 		}
 		
 		//
 		// Sort the keywords stat in descending order
-		
-		List<Entry<String, Integer>> keywordsStatEntryList = new ArrayList<Entry<String, Integer>>();
-		keywordsStatEntryList.addAll(keywordsStat.entrySet());
-		
-		Collections.sort(keywordsStatEntryList, new Comparator<Entry<String, Integer>>() {
-
-			@Override
-			public int compare(Entry<String, Integer> o1,
-					Entry<String, Integer> o2) 
-			{
-				// We sort the list in descendant order
-				return -(o1.getValue() - o2.getValue());
-			}
-			
-		});
-		
-		//
-		// Put sorted keywords stat to a new map
-		
-		Map<String, Integer> resultKeywordsStat = new LinkedHashMap<String, Integer>();
-		for (Entry<String, Integer> keywordsStatEntry : keywordsStatEntryList)
-		{
-			resultKeywordsStat.put(
-					StringUtil.unescapeString(keywordsStatEntry.getKey()), 
-					keywordsStatEntry.getValue());
-		}
-		
-		return resultKeywordsStat;
+		return keywordCounter.getListInDesc();
 	}
 	
 	/**
