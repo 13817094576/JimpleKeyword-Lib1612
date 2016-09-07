@@ -56,8 +56,12 @@ class KeywordInspector
 	
 	//
 	// Output statistic information
+	//
+	// The keywords in output log are stemmed keywords
+	// instead of raw keywords appearing in Jimple statement
 	
 	// We use List since Jimple statements doesn't seem to duplicate
+	// This field records Jimple statements with keywords for direct output
 	private List<String> jimpleWithKeywords;
 	// We use Set to avoid duplicated keywords
 	private Set<String> keywordsHit;
@@ -65,21 +69,37 @@ class KeywordInspector
 	private Set<String> keywordsInPackage;
 	// Jimple doesn't seem to duplicate
 	private List<String> jimpleUsingHashMap;
-	// Record info on Jimple statement hit for inspecting root classes
+	// Record raw Jimple statements with keywords for inspecting root classes
 	private List<JimpleHit> jimpleHit;
+	
+	//
+	// The following fields record the the raw data block statement
 	
 	// Data block statements for output
 	private List<String> dataBlockStatement;
 	// Data block raw statements for further processing
 	private List<DataBlockRawStat> dataBlockRawStat;
+	
+	//
+	// The following fields record the statements in data blocks with keywords
+	
 	// The raw statements in data blocks which contain keywords
 	private List<DataBlockRawStat> dataBlockWithKeywordsRawStat;
 	// Data block with keywords may hit multiple times.
 	// There may be multiple statements in a data block containing keywords
+	// This variable records the IDs of data blocks with keywords.
+	// IDs are in String format instead of int
 	private Set<String> dataBlockWithKeywordsIds;
 	
+	//
+	// For library package name list,
+	// we only care about the first 3 parts of package name
 	private Set<String> libraryPackageName;
 	
+	//
+	// The following fields record the <full-package-name, keyword> pair for output
+	// If the first 2 parts of package name is the same as that of APK,
+	// we treat it as app package.
 	private Set<String> keywordsInAppPackage;
 	private Set<String> keywordsInLibPackage;
 	
@@ -224,6 +244,8 @@ class KeywordInspector
 	 
 		Figure out if given Jimple statement contains keyword we interested
 		Currently, we only focused on keyword in String constant.
+		
+		The keyword returned is stemmed keyword.
 
 	 */
 	private String figureOutKeywordInJimple(String jimpleInString)
@@ -382,7 +404,7 @@ class KeywordInspector
 	
 	// Integer in string matcher
 	// Not needed to initialize multiple times
-	Pattern intPattern = Pattern.compile("[1-9][0-9]*");
+	static Pattern intPattern = Pattern.compile("[1-9][0-9]*");
 	
 	/**
 
@@ -546,6 +568,8 @@ class KeywordInspector
 		
 		jimpleWithKeywords.add(jimpleWithKeywordsLine);
 		
+		//
+		// Record raw Jimple statements with keywords
 		JimpleHit jimpleHitInst = new JimpleHit();
 		jimpleHitInst.jimple = curUnit;
 		jimpleHitInst.keyword = keywordInUnit;
@@ -682,6 +706,9 @@ class KeywordInspector
 	 
 		Scanning the classes with FlowDroid
 		and record the information we care.
+		
+		This method is the main entry of Jimple 
+		scrutinizing procedure.
 
 	 */
 	private void scanJimple()
@@ -887,7 +914,8 @@ class KeywordInspector
 		dataBlockWithKeywordsRawStat = pickOutRawStatInDataBlocksWithKeywords();
 		
 		//
-		// Process output info
+		// Sort the data block statements with object ID
+		// so that statements on the same object are placed together
 		Collections.sort(dataBlockStatement);
 	}
 	
@@ -1022,6 +1050,8 @@ class KeywordInspector
 		Generate the statistics on the keywords used by data blocks.
 		
 		And output the result list in descending order.
+		
+		This method only considers data blocks containing expected keywords
 
 	 */
 	Map<String, Integer> getKeywordsInDataBlocks()
@@ -1065,6 +1095,9 @@ class KeywordInspector
 		
 		The Simplified Data Blocks section only contains the object ID of data blocks,
 		the package name and the keywords in data blocks.
+		
+		The data blocks listed in Simplified Data Blocks section
+		must contain expected keywords.
 
 	 */
 	Set<String> getSimplfiedDataBlocks()

@@ -39,6 +39,11 @@ class RootCallerInspector
 	// Output statistics information
 	
 	private Set<String> rootCallerClassInfo = new HashSet<String>();
+	
+	//
+	// Some constants to avoid inconsistency in code
+	private static final String STRING_UNDETERMINED = "UNDETERMINED";
+	private static  final char PREFIX_SUPER_CLASS = 'S';
 
 	/**
 
@@ -98,12 +103,12 @@ class RootCallerInspector
 			{
 				// Super class isn't a child of displayable class
 				// So we're sure no resource ID in super class
-				return "UNDETERMINED";
+				return STRING_UNDETERMINED;
 			}
 			
 			
 			String activityClassId = getIdOfActivityClass(superClass);
-			if (activityClassId.equals("UNDETERMINED"))
+			if (activityClassId.equals(STRING_UNDETERMINED))
 			{
 				// No resource ID in super class,
 				// so ID can't be determined, keep activityClassId unchanged
@@ -114,7 +119,7 @@ class RootCallerInspector
 				// Found resource ID in super class
 				// flag the ID as ID from super class by adding 'S' prefix
 							
-				if (activityClassId.charAt(0) == 'S')
+				if (activityClassId.charAt(0) == PREFIX_SUPER_CLASS)
 				{
 					// If activity ID already has 'S' prefix, return it directly
 					return activityClassId;
@@ -122,7 +127,7 @@ class RootCallerInspector
 				else
 				{
 					// Otherwise, add 'S' prefix
-					return 'S' + activityClassId;
+					return PREFIX_SUPER_CLASS + activityClassId;
 				}
 			}
 		}
@@ -132,7 +137,7 @@ class RootCallerInspector
 			// No setContentView method found
 			// and no resource ID in base Activity class,
 			// Can't determine resource ID
-			return "UNDETERMINED";
+			return STRING_UNDETERMINED;
 		}		
 	}
 	
@@ -175,6 +180,9 @@ class RootCallerInspector
 		the resource ID is marked with 'S' prefix.
 		
 		If this function can't determine the ID,
+		which typically means that the code in Activity class
+		set the content of Activity using a method other than
+		setContentView method,
 		"UNDETERMINED" is returned.
 
 	 */
@@ -426,6 +434,7 @@ class RootCallerInspector
 	
 	//
 	// Output information access methods
+	
 	Set<String> getRootCallerClassInfo()
 	{
 		return rootCallerClassInfo;
