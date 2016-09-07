@@ -961,6 +961,11 @@ class KeywordInspector
 		return dataBlockStatWithKeywords;
 	}
 
+	/**
+	 
+		Return the raw key argument of a key-value pair operation
+
+	 */
 	private String extractKeyArgOfStat(Unit unit)
 	{
 		//
@@ -973,9 +978,19 @@ class KeywordInspector
 		return firstArgInStr;
 	}
 	
+	/**
+	 
+		Extract the value of key argument and 
+		return the value only if the value is a keyword
+
+	 */
 	private String extractValidKeyArgOfStat(Unit unit)
 	{
 		String firstArgInStr = extractKeyArgOfStat(unit);
+		
+		//
+		// Remove the empty space in argument
+		firstArgInStr = firstArgInStr.trim();
 		
 		//
 		// Check that if the arg is a constant
@@ -985,8 +1000,16 @@ class KeywordInspector
 		}
 
 		//
-		// Check if the arg contain comma
+		// If the argument contain comma,
+		// The it's much likely to be a sentence instead of a keyword
 		if (firstArgInStr.contains(","))
+		{
+			return null;
+		}
+		
+		//
+		// Check if the argument is an empty string
+		if (firstArgInStr.isEmpty())
 		{
 			return null;
 		}
@@ -994,10 +1017,19 @@ class KeywordInspector
 		return firstArgInStr;
 	}
 	
+	/**
+
+		Generate the statistics on the keywords used by data blocks.
+		
+		And output the result list in descending order.
+
+	 */
 	Map<String, Integer> getKeywordsInDataBlocks()
 	{
 		//
 		// We assume that the dataBlockWithKeywordsRawStat list is initialized
+		//
+		// This list should be initialized in the constructor of this class
 		assert dataBlockWithKeywordsRawStat != null;
 		
 		//
@@ -1032,7 +1064,7 @@ class KeywordInspector
 		}
 		
 		//
-		// Sort the keywords stat
+		// Sort the keywords stat in descending order
 		
 		List<Entry<String, Integer>> keywordsStatEntryList = new ArrayList<Entry<String, Integer>>();
 		keywordsStatEntryList.addAll(keywordsStat.entrySet());
@@ -1063,6 +1095,14 @@ class KeywordInspector
 		return resultKeywordsStat;
 	}
 	
+	/**
+
+		Generate the content of Simplified Data Blocks section.
+		
+		The Simplified Data Blocks section only contains the object ID of data blocks,
+		the package name and the keywords in data blocks.
+
+	 */
 	Set<String> getSimplfiedDataBlocks()
 	{
 		//
