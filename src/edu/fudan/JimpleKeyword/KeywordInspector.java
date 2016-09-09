@@ -620,11 +620,13 @@ class KeywordInspector
 		
 		//
 		// Traverse the reachable method in APK
+		int unitNum = 0;					// Unique ID for each Jimple statement
+		
 		QueueReader<MethodOrMethodContext> methodIter = Scene.v().getReachableMethods().listener();
 		while (methodIter.hasNext())
 		{
-			SootMethod m = methodIter.next().method();
-				
+			SootMethod m = methodIter.next().method();			
+			
 			// Skip method without active body
 			if (!SootUtil.ensureMethodActiveBody(m))
 			{
@@ -632,11 +634,28 @@ class KeywordInspector
 			}
 			
 			//
+			// Skip system packages
+			String curPackageName = m.getDeclaringClass().getPackageName();
+			if (isSystemPackage(curPackageName))
+			{
+				continue;
+			}
+			
+			//
+			// Record package name for statistics on package in app
+			inspectPackageName(curPackageName);
+			
+			//
 			// Traverse the statements in a method
 			Iterator<Unit> unitIter = m.getActiveBody().getUnits().iterator();
 			while (unitIter.hasNext())
 			{
 				Unit curUnit = unitIter.next();
+				
+				//
+				// Set unitNum tag for current Jimple statement
+				curUnit.addTag(new IntTag("unitNum", unitNum));
+				unitNum++;
 
 				// Inspect current Jimple statement
 				// and recording relating info if we interested in
@@ -906,7 +925,14 @@ class KeywordInspector
 		//
 		// Scan Jimple statements
 		// and record the information we interested in
-		scanJimple();
+		if (Config.reachableMethodsOnly)
+		{
+			scanJimpleReachableOnly();
+		}
+		else
+		{
+			scanJimple();
+		}
 		
 		//
 		// Pick out raw statements in data blocks which have keywords

@@ -51,6 +51,7 @@ public class Main
 		System.out.println("-m\tRecord and print Jimple statements using HashMap class");
 		System.out.println("-a\tDisable API filtering feature, inspect Jimple statement regardless of API it invokes");
 		System.out.println("-p\tEnable API in libraries only filtering. However, the libraries list may be incomplete");
+		System.out.println("-d\tOnly inspect reachable methods.");
 	}
 	
 	/**
@@ -214,6 +215,10 @@ public class Main
 			else if (args[i].equals("-p"))
 			{
 				Config.apiInLibrariesOnly = true;
+			}
+			else if (args[i].equals("-d"))
+			{
+				Config.reachableMethodsOnly = true;
 			}
 			
 			//

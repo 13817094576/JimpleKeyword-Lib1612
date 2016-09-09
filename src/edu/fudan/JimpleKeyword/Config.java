@@ -26,6 +26,9 @@ public class Config
 	// many APIs may be omitted.
 	// We can turn this feature on with "-p" command line switch.
 	public static boolean apiInLibrariesOnly;
+	// On default, we inspect all methods in APK.
+	// We can turn on reachable methods only feature with "-d" command line switch.
+	public static boolean reachableMethodsOnly;
 	
 	//
 	// Program exit status
