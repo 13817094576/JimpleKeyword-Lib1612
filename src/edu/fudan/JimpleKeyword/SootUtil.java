@@ -1,6 +1,11 @@
 package edu.fudan.JimpleKeyword;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import soot.SootMethod;
+import soot.Unit;
+import soot.ValueBox;
 import soot.tagkit.AttributeValueException;
 import soot.tagkit.Tag;
 
@@ -101,4 +106,76 @@ class IntTag implements Tag
 	{
 		return Integer.toString(value);
 	}
+}
+
+/**
+
+	This class is used for recording key string const
+	associated with a container variable instance.
+
+ */
+class KeyTaintTag implements Tag
+{
+	// The tag name of KeyTaintTag for tainting Soot ValueBox
+	static final String TAGNAME_KEYTAINT = "keyTaint";
+	
+	private String name;
+	private List<String> keyConsts = new ArrayList<String>();
+	
+	KeyTaintTag(String name)
+	{
+		this.name = name;
+	}
+
+	public void addKeyConst(String keyConst)
+	{
+		keyConsts.add(keyConst);
+	}
+	
+	@Override
+	public String getName() 
+	{
+		return name;
+	}
+
+	@Override
+	public byte[] getValue() throws AttributeValueException 
+	{
+		return this.toString().getBytes();
+	}
+	
+	public String getKeyConstsInStr()
+	{
+		return this.toString();
+	}
+	
+	/**
+	
+		Format the key consts list and output it.
+	
+	 */
+	@Override
+	public String toString()
+	{
+		StringBuilder keyConstsInStrBuilder = new StringBuilder();
+		for (String keyConst : keyConsts)
+		{
+			keyConstsInStrBuilder.append(keyConst);
+			keyConstsInStrBuilder.append(',');
+		}
+		
+		return keyConstsInStrBuilder.toString();
+	}
+}
+
+/**
+
+	This class is used for recording tainted container vars
+	and the taint source statement.
+
+ */
+class KeyTaintedVar
+{
+	Unit taintSrcStmt;
+	ValueBox varBox;
 }

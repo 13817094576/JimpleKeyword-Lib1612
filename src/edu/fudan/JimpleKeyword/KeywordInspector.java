@@ -26,10 +26,12 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.ValueBox;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 import soot.jimple.SpecialInvokeExpr;
+import soot.tagkit.Tag;
 import soot.util.queue.QueueReader;
 
 /**
@@ -102,6 +104,12 @@ class KeywordInspector
 	// we treat it as app package.
 	private Set<String> keywordsInAppPackage;
 	private Set<String> keywordsInLibPackage;
+	
+	//
+	// This list is used for recording key tainted vars
+	// and taint source statements.
+	// So that we can find out the starting point of data-flow analysis.
+	private List<KeyTaintedVar> keyTaintedVars = new ArrayList<KeyTaintedVar>();
 	
 	//
 	// Enumeration on Jimple statement status
@@ -500,6 +508,78 @@ class KeywordInspector
 	
 	/**
 	 
+		Taint the key-value pair container (i.e. HashMap instance)
+		with key string const.
+
+	 */
+	private void tryTaintHashMap(Unit curUnit)
+	{
+		//
+		// Here we assume curUnit is HashMap.get or HashMap.put
+		
+		// Ensure curUnit is an invoke expression
+		if (!(curUnit instanceof InvokeStmt))
+		{
+			return;
+		}
+		
+		//
+		// Get key of current key-value pair
+		String key = extractValidKeyArgOfStat(curUnit);
+		if (key == null)
+		{
+			return;
+		}
+		
+		//
+		// Get the HashMap instance ValueBox
+		InvokeStmt invokeStmt = (InvokeStmt)curUnit;
+		InvokeExpr invokeExpr = invokeStmt.getInvokeExpr();
+		if (!(invokeExpr instanceof InstanceInvokeExpr))
+		{
+			return;
+		}
+		InstanceInvokeExpr instanceInvoke = (InstanceInvokeExpr)invokeExpr;
+		ValueBox thisBox = instanceInvoke.getBaseBox();
+		
+		//
+		// Taint this value box
+		//
+		// Currently, although this pointers may point to the same container object,
+		// this value box in each statement is a different instance.
+		// So a new tag will be associated to each this pointer in each statement.
+		Tag thisKeyTag = thisBox.getTag(KeyTaintTag.TAGNAME_KEYTAINT);
+		if (thisKeyTag == null)
+		{
+			// Create a new key taint tag
+			KeyTaintTag keyTag = new KeyTaintTag(KeyTaintTag.TAGNAME_KEYTAINT);
+			keyTag.addKeyConst(key);
+			
+			// Associate the new tag to this container variable
+			thisBox.addTag(keyTag);
+		}
+		else
+		{
+			// Add new key const to KeyTaintTag
+			KeyTaintTag keyTag = (KeyTaintTag)thisKeyTag;
+			keyTag.addKeyConst(key);
+		}
+		
+		//
+		// Record the taint source statement in order to
+		// determine the starting point of data-flow analysis
+		
+		// Create a new KeyTaintedVar instance
+		KeyTaintedVar keyTaintedVar = new KeyTaintedVar();
+		keyTaintedVar.taintSrcStmt = curUnit;
+		keyTaintedVar.varBox = thisBox;
+		
+		// Add the new KeyTaintedVar instance to list
+		keyTaintedVars.add(keyTaintedVar);
+	}
+	
+	/**
+	 
 		Inspect given Jimple statement
 		and record relating information if
 		the statement is the one we interested in
@@ -527,7 +607,13 @@ class KeywordInspector
 		// Perform extra actions on statements using HashMap
 		if (isStatementUsingHashMap(curUnitInString))
 		{
+			//
+			// Record HashMap related statement if needed
 			inspectHashMapStatement(curUnit, curUnitInString);
+			
+			//
+			// Taint HashMap instance for data-flow analysis
+			tryTaintHashMap(curUnit);
 		}
 		
 		//
@@ -1068,6 +1154,10 @@ class KeywordInspector
 			return null;
 		}
 		
+		//
+		// Unescape C-style string
+		firstArgInStr = StringUtil.unescapeString(firstArgInStr);
+		
 		return firstArgInStr;
 	}
 	
@@ -1145,7 +1235,7 @@ class KeywordInspector
 			}
 			
 			// Unescape the key
-			constKey = StringUtil.unescapeString(constKey);
+			// constKey = StringUtil.unescapeString(constKey);
 			
 			String stat = rawStat.dataBlockId + ',' + constKey;
 			dataBlockStat.add(stat);

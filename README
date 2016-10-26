@@ -11,6 +11,7 @@ Options:
 -m	Record and print Jimple statements using HashMap class
 -a	Disable API filtering feature, inspect Jimple statement regardless of API it invokes
 -p	Enable API in libraries only filtering. However, the libraries list may be incomplete
+-d	Only inspect reachable methods
 
 
 Notes on the format of Jimple Hit log:
