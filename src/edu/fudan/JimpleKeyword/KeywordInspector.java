@@ -1243,6 +1243,18 @@ class KeywordInspector
 		
 		return dataBlockStat;
 	}
+	
+	/**
+	 
+		Return the list of key tainted container variables
+		
+		So that we can do data-flow analysis on these variables
+
+	 */
+	List<KeyTaintedVar> getKeyTaintedVars()
+	{
+		return keyTaintedVars;
+	}
 }
 
 /**

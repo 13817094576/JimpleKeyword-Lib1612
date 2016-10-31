@@ -398,6 +398,18 @@ public class Main
 		}
 		System.out.println("Simplified Data Blocks <<<<<<<<<<");
 		
+		//
+		// Do key taint tag data-flow analysis
+		List<KeyTaintedVar> keyTaintedVars = keywordInspector.getKeyTaintedVars();
+		KeyTaintAnalyzer keyTaintAnalyzer = new KeyTaintAnalyzer(keyTaintedVars);
+		System.out.println("Key Tainted Sinks >>>>>>>>>>");
+		List<String> sinkInfoInStr = keyTaintAnalyzer.getSinkOutput();
+		for (String curSinkInfo : sinkInfoInStr)
+		{
+			System.out.println(curSinkInfo);
+		}
+		System.out.println("Key Tainted Sinks <<<<<<<<<<");
+		
 		// Exit normally
 	}
 

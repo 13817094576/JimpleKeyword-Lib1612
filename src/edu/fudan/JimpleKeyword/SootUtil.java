@@ -166,6 +166,50 @@ class KeyTaintTag implements Tag
 		
 		return keyConstsInStrBuilder.toString();
 	}
+	
+	public static KeyTaintTag merge(KeyTaintTag[] tags)
+	{
+		//
+		// Handle empty corner case
+		if (tags == null || tags.length == 0)
+		{
+			return null;
+		}
+		
+		// Create a new KeyTaintTag instance
+		KeyTaintTag mergedTags = new KeyTaintTag(KeyTaintTag.TAGNAME_KEYTAINT);
+		
+		//
+		// Add all key tags to new instance
+		for (KeyTaintTag curTag : tags)
+		{
+			if (curTag == null)
+			{
+				continue;
+			}
+			
+			mergedTags.keyConsts.addAll(curTag.keyConsts);
+		}
+		
+		//
+		// Check if merged tag list is still empty
+		if (mergedTags.keyConsts.isEmpty())
+		{
+			// If merged tag list is still empty,
+			// return null
+			return null;
+		}
+		
+		return mergedTags;
+	}
+	
+	public void union(KeyTaintTag tag)
+	{
+		//
+		// Add the key consts of another instance 
+		// to current instance
+		keyConsts.addAll(tag.keyConsts);
+	}
 }
 
 /**
