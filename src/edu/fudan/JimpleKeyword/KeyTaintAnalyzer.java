@@ -61,8 +61,9 @@ class KeyTaintAnalyzer
 	}
 	
 	//
-	// This Pointer <- Merge(Tags of Arguments)
-	private void propInstanceInvoke(InstanceInvokeExpr instInvoke)
+	// This Pointer <- Merge(Tags of Arguments),
+	// Return Value <- Prop taint in target method body
+	private void propInstanceInvoke(InstanceInvokeExpr instInvoke, Stack<SootMethod> methodStack)
 	{
 		//
 		// SPECIAL CASE: No argument in current invoke expression
@@ -71,6 +72,9 @@ class KeyTaintAnalyzer
 		{
 			return;
 		}
+		
+		//
+		// Merge the taint of all arguments
 		
 		//
 		// Read all tags of arguments
@@ -93,25 +97,19 @@ class KeyTaintAnalyzer
 		//
 		// Taint this pointer with merged tag list
 		instInvoke.getBaseBox().addTag(mergedTags);
+		
+		//
+		// Do taint prop in target method body
+		
+		// Get target method
+		SootMethod targetMethod = instInvoke.getMethod();
+		
+		// Do taint prop in target method body
+		propInMethodBody(targetMethod, methodStack);
 	}
 	
-	private void propStaticInvoke(StaticInvokeExpr staticInvoke, Stack<SootMethod> methodStack)
+	private void propInMethodBody(SootMethod targetMethod, Stack<SootMethod> methodStack)
 	{
-		//
-		// Do propagation in body of methods
-		// is too time-consuming
-		// This method is disabled temporarily.
-		
-		/*
-		
-		//
-		// Enter the body of invoked method
-		// to tag the return value at the return statement.
-		
-		//
-		// Find out target method
-		SootMethod targetMethod = staticInvoke.getMethod();
-		
 		//
 		// Check if target method from dummyMainClass
 		if (isMethodFromDummyMain(targetMethod))
@@ -151,9 +149,26 @@ class KeyTaintAnalyzer
 		// Do propagation in target method
 		methodStack.push(targetMethod);
 		propFromUnit(firstUnitOfTarget, methodStack);
-		methodStack.pop();
+		methodStack.pop();		
+	}
+	
+	private void propStaticInvoke(StaticInvokeExpr staticInvoke, Stack<SootMethod> methodStack)
+	{
+
+		//
+		// Enter the body of invoked method
+		// to tag the return value at the return statement.
 		
-		*/
+		//
+		// Find out target method
+		SootMethod targetMethod = staticInvoke.getMethod();
+		
+		//
+		// Do propagation in body of methods
+		// is too time-consuming
+		// This method is disabled temporarily.
+		//propInMethodBody(targetMethod, methodStack);
+		
 	}
 	
 	/**
@@ -168,7 +183,7 @@ class KeyTaintAnalyzer
 		
 		if (invokeExpr instanceof InstanceInvokeExpr)
 		{
-			propInstanceInvoke((InstanceInvokeExpr)invokeExpr);
+			propInstanceInvoke((InstanceInvokeExpr)invokeExpr, methodStack);
 		}
 		else if (invokeExpr instanceof StaticInvokeExpr)
 		{
@@ -263,6 +278,11 @@ class KeyTaintAnalyzer
 		for (Value curArgValue : argValues)
 		{
 			String curArgInStr = curArgValue.toString();
+			
+			//
+			// Raw arg value in string is in C-style.
+			// We unescape it here
+			curArgInStr = StringUtil.unescapeString(curArgInStr);
 			
 			// Convert to lower case to ignore case
 			curArgInStr = curArgInStr.toLowerCase();
