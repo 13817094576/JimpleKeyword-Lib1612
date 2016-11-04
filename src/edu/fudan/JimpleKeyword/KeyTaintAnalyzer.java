@@ -91,6 +91,9 @@ class KeyTaintAnalyzer
 		KeyTaintTag mergedTags = KeyTaintTag.merge(argTags);
 		if (mergedTags == null)
 		{
+			//
+			// If there is no taint on any argument of target method
+			// There is no need to do propagation in the body of target method
 			return;
 		}
 		
@@ -152,9 +155,35 @@ class KeyTaintAnalyzer
 		methodStack.pop();		
 	}
 	
+	private boolean hasTaintOnArgs(InvokeExpr invokeExpr)
+	{
+		//
+		// Check each argument
+		for (int i=0; i<invokeExpr.getArgCount(); i++)
+		{
+			Tag curTag = invokeExpr.getArgBox(i).getTag(KeyTaintTag.TAGNAME_KEYTAINT);
+			if (curTag != null)
+			{
+				//
+				// Since the tag name of KeyTaintTag is fixed.
+				// We can safely cast Tag to KeyTaintTag.
+				KeyTaintTag curKeyTaintTag = (KeyTaintTag)curTag;
+				if (!curKeyTaintTag.isEmpty())
+				{
+					//
+					// There is an argument which is key tainted.
+					return true;
+				}
+			}
+		}
+		
+		//
+		// No argument is key tainted.
+		return false;
+	}
+	
 	private void propStaticInvoke(StaticInvokeExpr staticInvoke, Stack<SootMethod> methodStack)
 	{
-
 		//
 		// Enter the body of invoked method
 		// to tag the return value at the return statement.
@@ -164,10 +193,19 @@ class KeyTaintAnalyzer
 		SootMethod targetMethod = staticInvoke.getMethod();
 		
 		//
+		// Check if there is no taint on any argument of target method
+		// If so, we can skip the taint propagation in the body of target method
+		// 
+		// This can greatly reduce the amount of code the propagation logic should handle
+		// since no taint on any argument is the most common case we'll come across
+		if (!hasTaintOnArgs(staticInvoke))
+		{
+			return;
+		}
+		
+		//
 		// Do propagation in body of methods
-		// is too time-consuming
-		// This method is disabled temporarily.
-		//propInMethodBody(targetMethod, methodStack);
+		propInMethodBody(targetMethod, methodStack);
 		
 	}
 	

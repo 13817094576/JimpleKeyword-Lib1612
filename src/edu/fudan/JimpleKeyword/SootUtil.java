@@ -149,6 +149,11 @@ class KeyTaintTag implements Tag
 		return this.toString();
 	}
 	
+	public boolean isEmpty()
+	{
+		return keyConsts.isEmpty();
+	}
+	
 	/**
 	
 		Format the key consts list and output it.

@@ -693,9 +693,6 @@ class KeywordInspector
 		 
 		Scanning the Jimple statements which are though reachable by FlowDroid,
 		and record the information we care.
-		
-		THIS METHOD IS OBSOLETE.
-		Inspect the code of this method carefully before using.
 	
 	 */
 	private void scanJimpleReachableOnly()
