@@ -48,15 +48,34 @@ class KeyTaintAnalyzer
 	// For completeness, we should merge the key tag of right value
 	// to left value.
 	// And we left this work for future implementation.
-	private void propAssignStmt(AssignStmt stmt)
+	private void propAssignStmt(AssignStmt stmt, Stack<SootMethod> methodStack)
 	{
+		//
+		// Do propagation on invoke expression
+		if (stmt.containsInvokeExpr())
+		{
+			InvokeExpr invokeExpr = stmt.getInvokeExpr();
+			propInvokeExpr(invokeExpr, methodStack);
+		}
+		
+		//
+		// Do propagation on assignment
 		ValueBox leftBox = stmt.getLeftOpBox();
 		ValueBox rightBox = stmt.getRightOpBox();
-
+		
 		Tag keyTag = rightBox.getTag(KeyTaintTag.TAGNAME_KEYTAINT);
 		if (keyTag != null)
 		{
 			leftBox.addTag(keyTag);
+			
+			//
+			// DEBUG output
+			if (Config.DEBUG)
+			{
+				String assignProp = String.format("%s<-%s, %s, %s", 
+						leftBox.toString(), rightBox.toString(), keyTag.toString(), stmt.toString());
+				System.out.println(assignProp);
+			}
 		}
 	}
 	
@@ -100,6 +119,15 @@ class KeyTaintAnalyzer
 		//
 		// Taint this pointer with merged tag list
 		instInvoke.getBaseBox().addTag(mergedTags);
+		
+		//
+		// DEBUG output
+		if (Config.DEBUG)
+		{
+			String instInvokeTag = String.format("InstInvoke, %s, %s", 
+					instInvoke.getBaseBox().toString(), instInvoke.toString());
+			System.out.println(instInvokeTag);
+		}
 		
 		//
 		// Do taint prop in target method body
@@ -149,10 +177,24 @@ class KeyTaintAnalyzer
 			return;
 		}
 		
+		//
+		// DEBUG output
+		if (Config.DEBUG)
+		{
+			System.out.println("Prop in method body: " + targetMethod.toString() + " {");
+		}
+		
 		// Do propagation in target method
 		methodStack.push(targetMethod);
 		propFromUnit(firstUnitOfTarget, methodStack);
-		methodStack.pop();		
+		methodStack.pop();
+		
+		//
+		// DEBUG output
+		if (Config.DEBUG)
+		{
+			System.out.println("} Prop in method body: " + targetMethod.toString());
+		}
 	}
 	
 	private boolean hasTaintOnArgs(InvokeExpr invokeExpr)
@@ -215,10 +257,8 @@ class KeyTaintAnalyzer
 		invoke expression case by case.
 
 	 */
-	private void propInvokeStmt(InvokeStmt stmt, Stack<SootMethod> methodStack)
+	private void propInvokeExpr(InvokeExpr invokeExpr, Stack<SootMethod> methodStack)
 	{
-		InvokeExpr invokeExpr = stmt.getInvokeExpr();
-		
 		if (invokeExpr instanceof InstanceInvokeExpr)
 		{
 			propInstanceInvoke((InstanceInvokeExpr)invokeExpr, methodStack);
@@ -226,8 +266,18 @@ class KeyTaintAnalyzer
 		else if (invokeExpr instanceof StaticInvokeExpr)
 		{
 			propStaticInvoke((StaticInvokeExpr)invokeExpr, methodStack);
-		}
+		}		
+	}
+	
+	private void propInvokeStmt(InvokeStmt stmt, Stack<SootMethod> methodStack)
+	{
+		//
+		// Get invoke expression
+		InvokeExpr invokeExpr = stmt.getInvokeExpr();
 		
+		//
+		// Do propagation on invoke expression
+		propInvokeExpr(invokeExpr, methodStack);
 	}
 	
 	/**
@@ -242,7 +292,7 @@ class KeyTaintAnalyzer
 		// AssignStmt may already contain class fields assignment
 		if (curUnit instanceof AssignStmt)
 		{
-			propAssignStmt((AssignStmt)curUnit);
+			propAssignStmt((AssignStmt)curUnit, methodStack);
 		}
 		
 		//

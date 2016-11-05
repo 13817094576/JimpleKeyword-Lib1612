@@ -30,6 +30,8 @@ public class Config
 	// We can turn on reachable methods only feature with "-d" command line switch.
 	public static boolean reachableMethodsOnly;
 	
+	public static boolean DEBUG = true;
+	
 	//
 	// Program exit status
 	public static final int EXIT_NORMAL = 0;
