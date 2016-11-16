@@ -410,6 +410,14 @@ public class Main
 		}
 		System.out.println("Key Tainted Sinks (Incorrect) <<<<<<<<<<");
 		
+		Set<String> rootCallerMethodInfo = rootCallerInspector.getRootCallerMethodInfo();
+		System.out.println("Root Caller Method >>>>>>>>>>");
+		for (String curRootCallerMethodInfo : rootCallerMethodInfo)
+		{
+			System.out.println(curRootCallerMethodInfo);
+		}
+		System.out.println("Root Caller Method <<<<<<<<<<");
+		
 		// Exit normally
 	}
 

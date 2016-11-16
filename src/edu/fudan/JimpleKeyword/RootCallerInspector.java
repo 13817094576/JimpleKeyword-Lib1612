@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import soot.SootClass;
 import soot.SootMethod;
@@ -40,12 +41,15 @@ class RootCallerInspector
 	
 	// Information on root caller classes.
 	// It is adapted to be printed to console directly.
-	private Set<String> rootActivityClassInfo = new HashSet<String>();
+	private Set<String> rootActivityClassInfo = new TreeSet<String>();
+	// Information on root caller methods.
+	// This info is formatted in order to be printed to console directly.
+	private Set<String> rootCallerMethodInfo = new TreeSet<String>();
 	
 	//
 	// Some constants to avoid inconsistency in code
 	private static final String STRING_UNDETERMINED = "UNDETERMINED";
-	private static  final char PREFIX_SUPER_CLASS = 'S';
+	private static final char PREFIX_SUPER_CLASS = 'S';
 
 	/**
 
@@ -341,6 +345,13 @@ class RootCallerInspector
 	private void inspectRootCallerMethod(SootMethod rootCallerMethod, JimpleHit jimpleHit)
 	{
 		//
+		// Record info on root caller methods
+		String curMethodInfo = String.format("%d,%s,%s", 
+				jimpleHit.keywordUnitNum, jimpleHit.keyword, rootCallerMethod.getSignature());
+		
+		rootCallerMethodInfo.add(curMethodInfo);
+		
+		//
 		// Inspect and record related information of the root caller class
 		SootClass rootCallerClass = rootCallerMethod.getDeclaringClass();
 		inspectRootCallerClass(rootCallerClass, jimpleHit.keyword, jimpleHit.keywordUnitNum);		
@@ -459,5 +470,10 @@ class RootCallerInspector
 	Set<String> getRootActivityClassInfo()
 	{
 		return rootActivityClassInfo;
+	}
+	
+	Set<String> getRootCallerMethodInfo()
+	{
+		return rootCallerMethodInfo;
 	}
 }
