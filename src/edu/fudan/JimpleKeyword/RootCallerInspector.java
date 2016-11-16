@@ -33,11 +33,13 @@ class RootCallerInspector
 	private Map<String, String> activityClassIdCache = new HashMap<String, String>();
 	// Cache for recording method and its corresponding root caller
 	// in order to avoid repeat root caller inspection
-	private Map<SootMethod, SootClass> methodRootCallerCache = new HashMap<SootMethod, SootClass>();
+	private Map<SootMethod, SootMethod> methodRootCallerCache = new HashMap<SootMethod, SootMethod>();
 	
 	//
 	// Output statistics information
 	
+	// Information on root caller classes.
+	// It is adapted to be printed to console directly.
 	private Set<String> rootActivityClassInfo = new HashSet<String>();
 	
 	//
@@ -329,6 +331,22 @@ class RootCallerInspector
 	}
 	
 	/**
+
+		Root caller method is found.
+		
+		Inspect the root caller method
+		and record relating info on the method.
+
+	 */
+	private void inspectRootCallerMethod(SootMethod rootCallerMethod, JimpleHit jimpleHit)
+	{
+		//
+		// Inspect and record related information of the root caller class
+		SootClass rootCallerClass = rootCallerMethod.getDeclaringClass();
+		inspectRootCallerClass(rootCallerClass, jimpleHit.keyword, jimpleHit.keywordUnitNum);		
+	}
+	
+	/**
 	 
 		Inspect the root caller of a given Jimple statement.
 		
@@ -346,9 +364,13 @@ class RootCallerInspector
 		if (methodRootCallerCache.containsKey(m))
 		{
 			//
+			// Get root caller method
+			SootMethod rootCallerMethod = methodRootCallerCache.get(m);
+			
+			//
 			// Root caller found.
 			// Inspect root caller directly
-			inspectRootCallerClass(methodRootCallerCache.get(m), jimpleHit.keyword, jimpleHit.keywordUnitNum);
+			inspectRootCallerMethod(rootCallerMethod, jimpleHit);
 			
 			return;
 		}
@@ -362,14 +384,12 @@ class RootCallerInspector
 		{
 			//
 			// Current method is a root caller
-			
-			// Inspect and record related information of the class
-			SootClass rootCallerClass = m.getDeclaringClass();
-			inspectRootCallerClass(rootCallerClass, jimpleHit.keyword, jimpleHit.keywordUnitNum);
+			// Inspect the root caller method
+			inspectRootCallerMethod(m, jimpleHit);
 			
 			//
 			// Save root caller of current method to cache
-			methodRootCallerCache.put(m, rootCallerClass);
+			methodRootCallerCache.put(m, m);
 		}
 		else
 		{
