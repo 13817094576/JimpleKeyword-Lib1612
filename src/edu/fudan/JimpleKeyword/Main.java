@@ -330,11 +330,11 @@ public class Main
 		List<JimpleHit> jimpleHit = keywordInspector.getJimpleHit();
 		RootCallerInspector rootCallerInspector = new RootCallerInspector(jimpleHit);
 		
-		Set<String> rootCallerClassInfo = rootCallerInspector.getRootCallerClassInfo();
+		Set<String> rootActivityClassInfo = rootCallerInspector.getRootActivityClassInfo();
 		System.out.println("Root Caller Activity Classes >>>>>>>>>>");
-		for (String curRootCallerClassInfo : rootCallerClassInfo)
+		for (String curRootActivityClassInfo : rootActivityClassInfo)
 		{
-			System.out.println(curRootCallerClassInfo);
+			System.out.println(curRootActivityClassInfo);
 		}
 		System.out.println("Root Caller Activity Classes <<<<<<<<<<");
 		
@@ -402,13 +402,13 @@ public class Main
 		// Do key taint tag data-flow analysis
 		List<KeyTaintedVar> keyTaintedVars = keywordInspector.getKeyTaintedVars();
 		KeyTaintAnalyzer keyTaintAnalyzer = new KeyTaintAnalyzer(keyTaintedVars);
-		System.out.println("Key Tainted Sinks >>>>>>>>>>");
+		System.out.println("Key Tainted Sinks (Incorrect) >>>>>>>>>>");
 		List<String> sinkInfoInStr = keyTaintAnalyzer.getSinkOutput();
 		for (String curSinkInfo : sinkInfoInStr)
 		{
 			System.out.println(curSinkInfo);
 		}
-		System.out.println("Key Tainted Sinks <<<<<<<<<<");
+		System.out.println("Key Tainted Sinks (Incorrect) <<<<<<<<<<");
 		
 		// Exit normally
 	}

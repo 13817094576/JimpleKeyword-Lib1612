@@ -38,7 +38,7 @@ class RootCallerInspector
 	//
 	// Output statistics information
 	
-	private Set<String> rootCallerClassInfo = new HashSet<String>();
+	private Set<String> rootActivityClassInfo = new HashSet<String>();
 	
 	//
 	// Some constants to avoid inconsistency in code
@@ -266,29 +266,30 @@ class RootCallerInspector
 	
 	/**
 	 
-		Check if a root caller class is a child of Activity class.
+		Record information on root caller class.
 		
-		If so, record its related info and keyword on sensitive user info.
+		If the root caller class is derived from Activity class,
+		record info on Activity.
 
 	 */
 	private void inspectRootCallerClass(SootClass sootClass, String keyword, int keywordUnitNum)
 	{		
 		//
-		// We only care about root caller class which is a 
-		// child of class managing content display
-		if (!isChildOfDisplayableClass(sootClass))
+		// If root caller class is derived from Activity class,
+		// record info on Activity class.
+		if (isChildOfDisplayableClass(sootClass))
 		{
-			return;
+		
+			//
+			// Find out the ID of activity class
+			String activityId = getIdOfActivityClass(sootClass);
+			
+			//
+			// Record root caller activity class
+			String rootCallerClassName = sootClass.getName();
+			rootActivityClassInfo.add(Integer.toString(keywordUnitNum) + ',' + rootCallerClassName + ',' + keyword + ',' + activityId);
+
 		}
-		
-		//
-		// Find out the ID of activity class
-		String activityId = getIdOfActivityClass(sootClass);
-		
-		//
-		// Record root caller activity class
-		String rootCallerClassName = sootClass.getName();
-		rootCallerClassInfo.add(Integer.toString(keywordUnitNum) + ',' + rootCallerClassName + ',' + keyword + ',' + activityId);
 	}
 	
 	/**
@@ -435,8 +436,8 @@ class RootCallerInspector
 	//
 	// Output information access methods
 	
-	Set<String> getRootCallerClassInfo()
+	Set<String> getRootActivityClassInfo()
 	{
-		return rootCallerClassInfo;
+		return rootActivityClassInfo;
 	}
 }
