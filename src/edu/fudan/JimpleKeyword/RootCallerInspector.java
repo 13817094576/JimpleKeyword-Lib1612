@@ -44,7 +44,7 @@ class RootCallerInspector
 	private Set<String> rootActivityClassInfo = new TreeSet<String>();
 	// Information on root caller methods.
 	// This info is formatted in order to be printed to console directly.
-	private Set<String> rootCallerMethodInfo = new TreeSet<String>();
+	private StringBuilder rootCallerMethodInfo = new StringBuilder();
 	
 	//
 	// Some constants to avoid inconsistency in code
@@ -349,7 +349,9 @@ class RootCallerInspector
 		String curMethodInfo = String.format("%d,%s,%s", 
 				jimpleHit.keywordUnitNum, jimpleHit.keyword, rootCallerMethod.getSignature());
 		
-		rootCallerMethodInfo.add(curMethodInfo);
+		// Write method info to root caller method info buffer
+		rootCallerMethodInfo.append(curMethodInfo);
+		rootCallerMethodInfo.append('\n');
 		
 		//
 		// Inspect and record related information of the root caller class
@@ -472,8 +474,13 @@ class RootCallerInspector
 		return rootActivityClassInfo;
 	}
 	
-	Set<String> getRootCallerMethodInfo()
+	/**
+	 
+		This method returns formatted root caller methods info.
+
+	 */
+	String getRootCallerMethodInfo()
 	{
-		return rootCallerMethodInfo;
+		return rootCallerMethodInfo.toString();
 	}
 }
