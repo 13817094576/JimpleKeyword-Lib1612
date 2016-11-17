@@ -32,9 +32,6 @@ class RootCallerInspector
 	
 	// Activity ID cache for avoiding repeated Activity class scanning
 	private Map<String, String> activityClassIdCache = new HashMap<String, String>();
-	// Cache for recording method and its corresponding root caller
-	// in order to avoid repeat root caller inspection
-	private Map<SootMethod, SootMethod> methodRootCallerCache = new HashMap<SootMethod, SootMethod>();
 	
 	//
 	// Output statistics information
@@ -431,24 +428,6 @@ class RootCallerInspector
 		SootMethod m = Main.cfgOfApk.getMethodOf(jimpleHit.jimple);
 		
 		//
-		// Lookup cache first
-		// THE CACHE CODE LOOKS INCORRECT
-		// This code may be removed in near future
-		/*if (methodRootCallerCache.containsKey(m))
-		{
-			//
-			// Get root caller method
-			SootMethod rootCallerMethod = methodRootCallerCache.get(m);
-			
-			//
-			// Root caller found.
-			// Inspect root caller directly
-			inspectRootCallerMethod(rootCallerMethod, jimpleHit, methodStack);
-			
-			return;
-		}*/
-		
-		//
 		// Find out the callers of current method
 		Set<Unit> callers = Main.cfgOfApk.getCallersOf(m);
 		if (callers.isEmpty()
@@ -459,10 +438,6 @@ class RootCallerInspector
 			// Current method is a root caller
 			// Inspect the root caller method
 			inspectRootCallerMethod(m, jimpleHit, methodStack);
-			
-			//
-			// Save root caller of current method to cache
-			methodRootCallerCache.put(m, m);
 		}
 		else
 		{
