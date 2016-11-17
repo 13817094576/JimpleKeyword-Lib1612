@@ -333,19 +333,10 @@ class RootCallerInspector
 		// All callers are from dummyMainClass
 		return true;
 	}
-	
-	/**
 
-		Root caller method is found.
-		
-		Inspect the root caller method
-		and record relating info on the method.
-
-	 */
-	private void inspectRootCallerMethod(SootMethod rootCallerMethod, JimpleHit jimpleHit, Stack<SootMethod> callChain)
+	private void recordRootCallerMethodInfo(SootMethod rootCallerMethod, JimpleHit jimpleHit, Stack<SootMethod> callChain)
 	{
-		//
-		// Record info on root caller methods
+		// Summary info of current root caller method
 		String curMethodInfo = String.format("%d,%s", 
 				jimpleHit.keywordUnitNum, jimpleHit.keyword);
 		
@@ -364,7 +355,61 @@ class RootCallerInspector
 		}
 		
 		// Write a separate white line
-		rootCallerMethodInfo.append('\n');
+		rootCallerMethodInfo.append('\n');		
+	}
+	
+	//
+	// A set of signature of root caller methods
+	// in order to avoid duplicate root caller method info
+	private Set<String> rootCallerMethodID = new HashSet<String>();
+	
+	/**
+	
+		Record a unique signature of root caller method
+		in order to avoid duplicated root caller method info.
+
+	 */
+	private boolean recordRootCallerID(SootMethod rootCallerMethod, JimpleHit jimpleHit, Stack<SootMethod> callChain)
+	{
+		//
+		// Get fromMethod signature
+		String fromMethodID = null;
+		if (callChain.isEmpty())
+		{
+			fromMethodID = rootCallerMethod.getSignature();
+		}
+		else
+		{
+			fromMethodID = callChain.elementAt(0).getSignature();
+		}
+		
+		//
+		// We record keyword,fromMethod,rootCallerMethod as a signature
+		String curID = String.format("%s,%s,%s",
+				jimpleHit.keyword, fromMethodID, rootCallerMethod.getSignature());
+		return rootCallerMethodID.add(curID);
+	}
+	
+	/**
+
+		Root caller method is found.
+		
+		Inspect the root caller method
+		and record relating info on the method.
+
+	 */
+	private void inspectRootCallerMethod(SootMethod rootCallerMethod, JimpleHit jimpleHit, Stack<SootMethod> callChain)
+	{
+		//
+		// Record ID of root caller methods
+		// in order to avoid duplicated root caller methods info
+		if (recordRootCallerID(rootCallerMethod, jimpleHit, callChain))
+		{
+			//
+			// Current root caller method hasn't been recorded
+			// Record its relating info
+			recordRootCallerMethodInfo(rootCallerMethod, jimpleHit, callChain);
+		}
 		
 		//
 		// Inspect and record related information of the root caller class
@@ -387,7 +432,9 @@ class RootCallerInspector
 		
 		//
 		// Lookup cache first
-		if (methodRootCallerCache.containsKey(m))
+		// THE CACHE CODE LOOKS INCORRECT
+		// This code may be removed in near future
+		/*if (methodRootCallerCache.containsKey(m))
 		{
 			//
 			// Get root caller method
@@ -399,7 +446,7 @@ class RootCallerInspector
 			inspectRootCallerMethod(rootCallerMethod, jimpleHit, methodStack);
 			
 			return;
-		}
+		}*/
 		
 		//
 		// Find out the callers of current method
