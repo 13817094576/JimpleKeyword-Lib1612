@@ -342,15 +342,28 @@ class RootCallerInspector
 		and record relating info on the method.
 
 	 */
-	private void inspectRootCallerMethod(SootMethod rootCallerMethod, JimpleHit jimpleHit)
+	private void inspectRootCallerMethod(SootMethod rootCallerMethod, JimpleHit jimpleHit, Stack<SootMethod> callChain)
 	{
 		//
 		// Record info on root caller methods
-		String curMethodInfo = String.format("%d,%s,%s", 
-				jimpleHit.keywordUnitNum, jimpleHit.keyword, rootCallerMethod.getSignature());
+		String curMethodInfo = String.format("%d,%s", 
+				jimpleHit.keywordUnitNum, jimpleHit.keyword);
 		
 		// Write method info to root caller method info buffer
 		rootCallerMethodInfo.append(curMethodInfo);
+		rootCallerMethodInfo.append('\n');
+		
+		// Write call chain info
+		rootCallerMethodInfo.append(rootCallerMethod.getSignature());
+		rootCallerMethodInfo.append('\n');
+		for (int i=callChain.size()-1; i>=0; i--)
+		{
+			SootMethod curMethod = callChain.elementAt(i);
+			rootCallerMethodInfo.append(curMethod.getSignature());
+			rootCallerMethodInfo.append('\n');
+		}
+		
+		// Write a separate white line
 		rootCallerMethodInfo.append('\n');
 		
 		//
@@ -383,7 +396,7 @@ class RootCallerInspector
 			//
 			// Root caller found.
 			// Inspect root caller directly
-			inspectRootCallerMethod(rootCallerMethod, jimpleHit);
+			inspectRootCallerMethod(rootCallerMethod, jimpleHit, methodStack);
 			
 			return;
 		}
@@ -398,7 +411,7 @@ class RootCallerInspector
 			//
 			// Current method is a root caller
 			// Inspect the root caller method
-			inspectRootCallerMethod(m, jimpleHit);
+			inspectRootCallerMethod(m, jimpleHit, methodStack);
 			
 			//
 			// Save root caller of current method to cache
