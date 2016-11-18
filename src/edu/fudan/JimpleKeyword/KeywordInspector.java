@@ -422,7 +422,11 @@ class KeywordInspector
 		and return the IDs of data block objects.
 
 	 */
-	private List<String> recordStatementInDataBlock(Unit curUnit, String curUnitInString, String curClassName, int unitNum)
+	private List<String> recordStatementInDataBlock(Unit curUnit, 
+			String curUnitInString, 
+			String curClassName, 
+			int unitNum,
+			String keywordInUnit)
 	{
 		//
 		// Get this parameter of invoke expression
@@ -481,6 +485,7 @@ class KeywordInspector
 			DataBlockRawStat rawStat = new DataBlockRawStat();
 			rawStat.dataBlockId = thisObjId;
 			rawStat.statement = curUnit;
+			rawStat.keyword = keywordInUnit;
 			dataBlockRawStat.add(rawStat);
 		}
 		
@@ -617,15 +622,18 @@ class KeywordInspector
 		}
 		
 		//
+		// Find out if current Jimple statement contains a keyword
+		String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
+		
+		//
 		// Record key-value invocation in on the same data block instance
 		List<String> dataBlockObjIdList = null;
 		if (isInvokeStmtContainKeyValue(curUnit))
 		{
-			dataBlockObjIdList = recordStatementInDataBlock(curUnit, curUnitInString, curClass.getName(), unitNumTag.getInt());
+			dataBlockObjIdList = recordStatementInDataBlock(curUnit, curUnitInString, curClass.getName(), unitNumTag.getInt(), keywordInUnit);
 		}
 		
 		// Check if current statement contains any known keyword
-		String keywordInUnit = figureOutKeywordInJimple(curUnitInString);
 		if (keywordInUnit == null)
 		{
 			// Skip Jimple statement without keyword
@@ -953,6 +961,12 @@ class KeywordInspector
 		}
 	}
 
+	/**
+	
+		Extract out the data blocks with keywords from dataBlockRawStat
+		according to the data block object ID list dataBlockWithKeywordsIds
+
+	 */
 	private List<DataBlockRawStat> pickOutRawStatInDataBlocksWithKeywords()
 	{
 		// Initialize result list
@@ -1277,4 +1291,7 @@ class DataBlockRawStat
 {
 	Unit statement;
 	String dataBlockId;
+	
+	// The keyword in current Jimple statement
+	String keyword;
 }
