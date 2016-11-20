@@ -415,6 +415,16 @@ public class Main
 		System.out.print(rootCallerMethodInfo);
 		System.out.println("Root Caller Method <<<<<<<<<<");
 		
+		//
+		// Find out the root caller methods of data blocks
+		List<DataBlockRawStat> dataBlockWithKwRawStat = keywordInspector.getDataBlockWithKeywordsRawStat();
+		RootCallerMethodInspector rootCallerMethodInspector = new RootCallerMethodInspector(dataBlockWithKwRawStat);
+		
+		String rootCallerMethodOfDataBlocks = rootCallerMethodInspector.getRootCallerMethodInfo();
+		System.out.println("Root Caller Method of Data Blocks >>>>>>>>>>");
+		System.out.print(rootCallerMethodOfDataBlocks);
+		System.out.println("Root Caller Method of Data Blocks <<<<<<<<<<");
+		
 		// Exit normally
 	}
 

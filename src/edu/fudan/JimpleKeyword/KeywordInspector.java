@@ -1266,6 +1266,11 @@ class KeywordInspector
 	{
 		return keyTaintedVars;
 	}
+	
+	List<DataBlockRawStat> getDataBlockWithKeywordsRawStat()
+	{
+		return dataBlockWithKeywordsRawStat;
+	}
 }
 
 /**
