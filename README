@@ -14,6 +14,13 @@ Options:
 -d	Only inspect reachable methods
 
 
+Notes on the format of output log
+--------------------------------------------------------
+Format of Root Caller Method section:
+From Jimple ID, Keyword
+Call Stack
+
+
 Notes on the format of Jimple Hit log:
 We should put Jimple statement text at the end of a line to facilitate log parsing,
 since the Jimple statement may also contains comma ','.
