@@ -425,6 +425,18 @@ public class Main
 		System.out.print(rootCallerMethodOfDataBlocks);
 		System.out.println("Root Caller Method of Data Blocks <<<<<<<<<<");
 		
+		//
+		// Generate sensitive data info for TaintDroid dynamic tracking
+		TDroidLink tdroidLink = new TDroidLink(dataBlockWithKwRawStat);
+		Set<String> sensitiveDataInfo = tdroidLink.getSensitiveDataInfo();
+		
+		System.out.println("TDroid Sensitive Data >>>>>>>>>>");
+		for (String curSensitiveDataInfo : sensitiveDataInfo)
+		{
+			System.out.println(curSensitiveDataInfo);
+		}
+		System.out.println("TDroid Sensitive Data <<<<<<<<<<");
+		
 		// Exit normally
 	}
 
