@@ -1,6 +1,7 @@
 package edu.fudan.JimpleKeyword;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -325,7 +326,7 @@ class KeyTaintAnalyzer
 		//
 		// Find out caller sites
 		SootMethod curMethod = Main.cfgOfApk.getMethodOf(retStmt);
-		Set<Unit> callerStmts = Main.cfgOfApk.getCallersOf(curMethod);
+		Collection<Unit> callerStmts = Main.cfgOfApk.getCallersOf(curMethod);
 		
 		//
 		// Process each caller statements

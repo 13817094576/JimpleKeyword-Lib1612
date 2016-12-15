@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.xmlpull.v1.XmlPullParserException;
+
 import soot.Scene;
 import soot.Unit;
-import soot.jimple.infoflow.InfoflowResults;
-import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
-import soot.jimple.infoflow.android.IMethodSpec;
 import soot.jimple.infoflow.android.SetupApplication;
-import soot.jimple.infoflow.android.AndroidSourceSinkManager.LayoutMatchingMode;
 import soot.jimple.infoflow.android.data.AndroidMethod;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
-import soot.jimple.infoflow.solver.IInfoflowCFG;
+import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
+import soot.jimple.infoflow.results.InfoflowResults;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 /**
@@ -98,15 +98,6 @@ public class Main
 		//
 		// Initialize Soot and FlowDroid
 		SetupApplication app = new SetupApplication(androidJar, apkFile);
-		app.setStopAfterFirstFlow(false);
-		app.setEnableImplicitFlows(false);
-		app.setEnableStaticFieldTracking(true);
-		app.setEnableCallbacks(true);
-		app.setEnableExceptionTracking(true);
-		app.setAccessPathLength(1);
-		app.setLayoutMatchingMode(LayoutMatchingMode.NoMatch);
-		app.setFlowSensitiveAliasing(true);
-		app.setCallgraphAlgorithm(CallgraphAlgorithm.AutomaticSelection);
 		
 		try 
 		{
@@ -126,11 +117,9 @@ public class Main
 		// and info-flow analysis
 		
 		// Construct source-sink manager
-		Set<AndroidMethod> sources = new HashSet<AndroidMethod>();
-		Set<AndroidMethod> sinks = new HashSet<AndroidMethod>();
 		try 
 		{
-			app.calculateSourcesSinksEntrypoints(sources, sinks, new HashSet<IMethodSpec>());
+			app.calculateSourcesSinksEntrypoints(Config.CONFIG_FILE_SOURCES_SINKS);
 		} 
 		catch (IOException e) 
 		{
@@ -138,21 +127,58 @@ public class Main
 			// since we have checked the path of APK file when program launch
 			// Fail-fast
 			throw new RuntimeException("Unexpected IO Error on specified APK file");
+		} catch (XmlPullParserException e) 
+		{
+			// Unexpected error
+			// Fail-fast
+			throw new RuntimeException("Unexpected XML Parsing Error on specified APK file", e);
 		}
 		
 		// Run info-flow analysis to construct CFG and Call Graph
-		InfoflowResults infoFlowResults = app.runInfoflow();
+		InfoflowResults infoFlowResults = app.runInfoflow(new ResultsAvailableHandler() 
+		{
+			@Override
+			public void onResultsAvailable(IInfoflowCFG arg0,
+					InfoflowResults arg1) 
+			{
+				//
+				// Save app CFG analysis results to app-wide program status
+				cfgOfApk = arg0;
+				
+			}	
+		});
 		
 		//
-		// Save some analysis results to app-wide program status
-		cfgOfApk = app.getCFG();
+		// Check if we got CFG of app
+		if (cfgOfApk == null)
+		{
+			System.err.println("It's unbelievable that given APK doesn't contain any specified sources-sinks");
+			System.err.println("In current version of FlowDroid, without any sources-sinks, we can't got CFG of APK");
+			System.err.println("JimpleKeyword tool can't handle this case currently");
+			System.err.println("\nExecution Aborted.");
+			
+			System.exit(Config.EXIT_ERROR);
+		}
 		
 		//
 		// Process manifest file extract relating info
 		
 		// Process manifest file
-		ProcessManifest manifestHandler = new ProcessManifest();
-		manifestHandler.loadManifestFile(apkFile);
+		ProcessManifest manifestHandler;
+		try 
+		{
+			manifestHandler = new ProcessManifest(apkFile);
+		}
+		catch (IOException e) 
+		{
+			// Unexpected error, Fail-fast
+			throw new RuntimeException("Unexpected IO error on specified APK file", e);
+		} 
+		catch (XmlPullParserException e) 
+		{
+			// Unexpected error, Fail-fast
+			throw new RuntimeException("Unexpected XML Parsing error on specified APK file", e);
+		}
 		
 		// Extract info from manifest file
 		Main.apkPackageName = manifestHandler.getPackageName();

@@ -1,5 +1,6 @@
 package edu.fudan.JimpleKeyword;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -305,7 +306,7 @@ class RootCallerInspector
 		from dummyMainClass to judge if a method is an entrypoint.
 
 	 */
-	private boolean areCallersFromDummyMain(Set<Unit> callers)
+	private boolean areCallersFromDummyMain(Collection<Unit> callers)
 	{
 		//
 		// Check assumptions
@@ -426,10 +427,16 @@ class RootCallerInspector
 	{
 		// Find out the method contains the Jimple statement
 		SootMethod m = Main.cfgOfApk.getMethodOf(jimpleHit.jimple);
+		// It's strange that sometimes getMethodOf returns null
+		// in newer version of FlowDroid.
+		if (m == null)
+		{
+			return;
+		}
 		
 		//
 		// Find out the callers of current method
-		Set<Unit> callers = Main.cfgOfApk.getCallersOf(m);
+		Collection<Unit> callers = Main.cfgOfApk.getCallersOf(m);
 		if (callers.isEmpty()
 			// For FlowDroid, all entrypoint methods are called from dummyMainClass
 			|| areCallersFromDummyMain(callers))

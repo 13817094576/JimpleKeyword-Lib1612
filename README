@@ -14,6 +14,14 @@ Options:
 -d	Only inspect reachable methods
 
 
+Library Dependencies
+--------------------------------------------------------
+The source code of JimpleKeyword tool depends on JARs of
+FlowDroid on 201612.
+The source code is only tested with this version of 
+FlowDroid libraries.
+
+
 Notes on the format of output log
 --------------------------------------------------------
 Format of Root Caller Method section:

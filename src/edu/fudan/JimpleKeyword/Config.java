@@ -6,6 +6,7 @@ public class Config
 	// FlowDroid config files
 	public static final String CONFIG_FILE_TAINT_WRAPPER = "EasyTaintWrapperSource.txt";
 	public static final String CONFIG_FILE_ANDROID_CALLBACK = "AndroidCallbacks.txt";
+	public static final String CONFIG_FILE_SOURCES_SINKS = "SourcesAndSinks.txt";
 	
 	//
 	// Config files for JimpleKeyword tool
