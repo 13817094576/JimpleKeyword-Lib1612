@@ -1271,6 +1271,21 @@ class KeywordInspector
 	{
 		return dataBlockWithKeywordsRawStat;
 	}
+	
+	//
+	// Utility functions
+	
+	/**
+	
+		Check if the given stmt hits the keywords we desired, 
+		if hit, return the correspond keyword,
+		If not, return null
+
+	 */
+	public String isHit(Unit unit)
+	{
+		return figureOutKeywordInJimple(unit.toString());
+	}
 }
 
 /**

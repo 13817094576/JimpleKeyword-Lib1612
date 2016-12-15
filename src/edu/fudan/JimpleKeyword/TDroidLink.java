@@ -13,6 +13,12 @@ import soot.SootMethod;
 	info on sensitive data structure
 	in order to track these structures in 
 	TaintDroid.
+	
+	NOTES:
+	Currently we tag sensitive data from 
+	data blocks with keywords.
+	This brings in less sensitive data than
+	Jimple statements with keywords.
 
  */
 class TDroidLink 
