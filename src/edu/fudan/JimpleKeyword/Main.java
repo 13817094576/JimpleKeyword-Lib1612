@@ -58,7 +58,7 @@ public class Main
 	private static void ShowUsage()
 	{
 		System.out.println("Usage: java -jar JimpleKeyword.jar [options] --android-jar ANDROID.JAR APP.APK KEYWORD-LIST.TXT");
-		System.out.println("This program is written and tested on Java 1.7");
+		System.out.println("This program is written and tested on Java 1.8");
 		
 		System.out.println("\nOptions:");
 		System.out.println("-m\tRecord and print Jimple statements using HashMap class");
