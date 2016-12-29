@@ -90,7 +90,13 @@ public class Main
 		{
 			System.err.println("Config File AndroidCallbacks.txt missing\nAborted");
 			throw new FileSystemNotFoundException("Config File AndroidCallbacks.txt missing");
-		}		
+		}
+		File sourceSinkFile = new File(Config.CONFIG_FILE_SOURCES_SINKS);
+		if (!sourceSinkFile.isFile())
+		{
+			System.err.println("Config File SourcesAndSinks.txt missing\nAborted");
+			throw new FileSystemNotFoundException("Config File SourcesAndSinks.txt missing");
+		}
 	}
 	
 	private static void AnalyzeApkWithFlowDroid(String androidJar, String apkFile)
@@ -140,7 +146,8 @@ public class Main
 			// since we have checked the path of APK file when program launch
 			// Fail-fast
 			throw new RuntimeException("Unexpected IO Error on specified APK file");
-		} catch (XmlPullParserException e) 
+		} 
+		catch (XmlPullParserException e) 
 		{
 			// Unexpected error
 			// Fail-fast
@@ -160,19 +167,22 @@ public class Main
 		DefaultPathBuilderFactory pathBuilderFactory =
 				new DefaultPathBuilderFactory(infoFlowConfig.getPathBuilder(), infoFlowConfig.getComputeResultPaths());
 		Infoflow infoFlow = new Infoflow(androidJar, forceAndroidJar, null, pathBuilderFactory);
-		try {
+		try 
+		{
 			infoFlow.setTaintWrapper(new EasyTaintWrapper(Config.CONFIG_FILE_TAINT_WRAPPER));
-		} catch (IOException e) {
-			//
+		} 
+		catch (IOException e) 
+		{
 			// Unexpected error, Fail-fast
 			throw new RuntimeException("Unexpected IO Exception:", e);
 		}
 		
-		infoFlow.addResultsAvailableHandler(new ResultsAvailableHandler() {
-
+		infoFlow.addResultsAvailableHandler(new ResultsAvailableHandler() 
+		{
 			@Override
 			public void onResultsAvailable(IInfoflowCFG arg0,
-					InfoflowResults arg1) {
+					InfoflowResults arg1) 
+			{
 				// Save generated CFG
 				cfgOfApk = arg0;
 			}
@@ -186,18 +196,20 @@ public class Main
 		// HACK: The SourceSinkManager is HACKED
 		// so that we force to give FlowDroid some dummy source -> sink path.
 		
-		infoFlow.computeInfoflow(apkFile, androidJar, app.getEntryPointCreator(), new ISourceSinkManager() {
-
+		infoFlow.computeInfoflow(apkFile, androidJar, app.getEntryPointCreator(), new ISourceSinkManager() 
+		{
 			@Override
 			public SourceInfo getSourceInfo(Stmt arg0,
-					InterproceduralCFG<Unit, SootMethod> arg1) {
+					InterproceduralCFG<Unit, SootMethod> arg1) 
+			{
 				// Force found source
 				return new SourceInfo(AccessPath.getEmptyAccessPath());
 			}
 
 			@Override
 			public boolean isSink(Stmt arg0,
-					InterproceduralCFG<Unit, SootMethod> arg1, AccessPath arg2) {
+					InterproceduralCFG<Unit, SootMethod> arg1, AccessPath arg2) 
+			{
 				// Force found sink
 				return arg0 instanceof ReturnStmt;
 			}
