@@ -16,6 +16,11 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.fudan.JimpleKeyword.io.KeywordList;
+import edu.fudan.JimpleKeyword.util.IntTag;
+import edu.fudan.JimpleKeyword.util.SootUtil;
+import edu.fudan.JimpleKeyword.util.StringUtil;
+import edu.fudan.JimpleKeyword.util.WordCounter;
 import soot.Local;
 import soot.MethodOrMethodContext;
 import soot.PointsToAnalysis;

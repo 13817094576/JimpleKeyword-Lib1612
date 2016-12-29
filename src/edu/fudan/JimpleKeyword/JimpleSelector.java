@@ -2,6 +2,8 @@ package edu.fudan.JimpleKeyword;
 
 import java.io.File;
 
+import edu.fudan.JimpleKeyword.io.InterestedApiList;
+import edu.fudan.JimpleKeyword.io.LibrariesList;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;

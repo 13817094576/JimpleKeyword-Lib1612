@@ -1,7 +1,10 @@
-package edu.fudan.JimpleKeyword;
+package edu.fudan.JimpleKeyword.io;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import edu.fudan.JimpleKeyword.Config;
+import edu.fudan.JimpleKeyword.util.FileUtil;
 
 /**
 
@@ -49,7 +52,7 @@ public class LibrariesList
 	 	and store the content to the class
 	 
 	 */
-	LibrariesList()
+	public LibrariesList()
 	{
 		//
 		// Check if interested API only switch is turned on
@@ -85,7 +88,7 @@ public class LibrariesList
 		contains package name of certain library
 
 	 */
-	boolean containLibPackageName(String text)
+	public boolean containLibPackageName(String text)
 	{
 		return figureOutLibPackageName(text) != null;
 	}

@@ -1,4 +1,4 @@
-package edu.fudan.JimpleKeyword;
+package edu.fudan.JimpleKeyword.util;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -11,14 +11,14 @@ import java.util.List;
 	for file operations
 
  */
-class FileUtil 
+public class FileUtil 
 {
 	/**
 	 
 		Read all text lines from a file in raw format
 
 	*/
-	static List<String> readAllLinesFromFile(String fileName)
+	public static List<String> readAllLinesFromFile(String fileName)
 	{
 		List<String> lines = new ArrayList<String>();
 		

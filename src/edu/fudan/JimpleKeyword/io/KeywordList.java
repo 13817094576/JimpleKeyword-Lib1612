@@ -1,9 +1,11 @@
-package edu.fudan.JimpleKeyword;
+package edu.fudan.JimpleKeyword.io;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import edu.fudan.JimpleKeyword.util.FileUtil;
 
 /**
 
@@ -54,7 +56,7 @@ public class KeywordList
 	 	and store the content to the class
 	 
 	 */
-	KeywordList(String fileName)
+	public KeywordList(String fileName)
 	{
 		//
 		// Read content of keyword list file to array list in class
@@ -107,7 +109,7 @@ public class KeywordList
 		in order to ignore case
 
 	 */
-	String figureOutKeyword(String text)
+	public String figureOutKeyword(String text)
 	{
 		// Convert text to lower case to ignore case
 		// Keywords in keywordList has already converted to lower case
@@ -127,7 +129,7 @@ public class KeywordList
 		return null;
 	}
 	
-	Set<String> getDictForWordSplit()
+	public Set<String> getDictForWordSplit()
 	{
 		return wordsForSplitting;
 	}

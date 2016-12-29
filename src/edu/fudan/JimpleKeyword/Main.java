@@ -13,6 +13,8 @@ import java.util.Set;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import edu.fudan.JimpleKeyword.io.KeywordList;
+import edu.fudan.JimpleKeyword.util.SootUtil;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;

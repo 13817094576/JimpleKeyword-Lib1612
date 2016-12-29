@@ -10,6 +10,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
+import edu.fudan.JimpleKeyword.util.StringUtil;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
@@ -23,6 +24,7 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.StaticInvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.internal.JReturnVoidStmt;
+import soot.tagkit.AttributeValueException;
 import soot.tagkit.Tag;
 
 /**
@@ -600,4 +602,126 @@ class KeyTaintAnalyzer
 		
 		return sinkOutputInStr;
 	}
+}
+
+
+/**
+
+	This class is used for recording key string const
+	associated with a container variable instance.
+
+ */
+class KeyTaintTag implements Tag
+{
+	// The tag name of KeyTaintTag for tainting Soot ValueBox
+	static final String TAGNAME_KEYTAINT = "keyTaint";
+	
+	private String name;
+	private List<String> keyConsts = new ArrayList<String>();
+	
+	KeyTaintTag(String name)
+	{
+		this.name = name;
+	}
+
+	public void addKeyConst(String keyConst)
+	{
+		keyConsts.add(keyConst);
+	}
+	
+	@Override
+	public String getName() 
+	{
+		return name;
+	}
+
+	@Override
+	public byte[] getValue() throws AttributeValueException 
+	{
+		return this.toString().getBytes();
+	}
+	
+	public String getKeyConstsInStr()
+	{
+		return this.toString();
+	}
+	
+	public boolean isEmpty()
+	{
+		return keyConsts.isEmpty();
+	}
+	
+	/**
+	
+		Format the key consts list and output it.
+	
+	 */
+	@Override
+	public String toString()
+	{
+		StringBuilder keyConstsInStrBuilder = new StringBuilder();
+		for (String keyConst : keyConsts)
+		{
+			keyConstsInStrBuilder.append(keyConst);
+			keyConstsInStrBuilder.append(',');
+		}
+		
+		return keyConstsInStrBuilder.toString();
+	}
+	
+	public static KeyTaintTag merge(KeyTaintTag[] tags)
+	{
+		//
+		// Handle empty corner case
+		if (tags == null || tags.length == 0)
+		{
+			return null;
+		}
+		
+		// Create a new KeyTaintTag instance
+		KeyTaintTag mergedTags = new KeyTaintTag(KeyTaintTag.TAGNAME_KEYTAINT);
+		
+		//
+		// Add all key tags to new instance
+		for (KeyTaintTag curTag : tags)
+		{
+			if (curTag == null)
+			{
+				continue;
+			}
+			
+			mergedTags.keyConsts.addAll(curTag.keyConsts);
+		}
+		
+		//
+		// Check if merged tag list is still empty
+		if (mergedTags.keyConsts.isEmpty())
+		{
+			// If merged tag list is still empty,
+			// return null
+			return null;
+		}
+		
+		return mergedTags;
+	}
+	
+	public void union(KeyTaintTag tag)
+	{
+		//
+		// Add the key consts of another instance 
+		// to current instance
+		keyConsts.addAll(tag.keyConsts);
+	}
+}
+
+/**
+
+	This class is used for recording tainted container vars
+	and the taint source statement.
+
+ */
+class KeyTaintedVar
+{
+	Unit taintSrcStmt;
+	ValueBox varBox;
 }

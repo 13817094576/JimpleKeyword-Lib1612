@@ -3,6 +3,9 @@ package edu.fudan.JimpleKeyword;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.fudan.JimpleKeyword.io.KeywordList;
+import edu.fudan.JimpleKeyword.util.StringUtil;
+
 /**
 
 	This class contains methods and configurations
