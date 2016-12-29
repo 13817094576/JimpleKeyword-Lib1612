@@ -202,8 +202,19 @@ public class Main
 			public SourceInfo getSourceInfo(Stmt arg0,
 					InterproceduralCFG<Unit, SootMethod> arg1) 
 			{
+				//
 				// Force found source
-				return new SourceInfo(AccessPath.getEmptyAccessPath());
+				// and the condition is arbitrary
+				// It only decrease the number of paths 
+				// to decrease the running time
+				if (arg0 instanceof ReturnStmt)
+				{
+					return new SourceInfo(AccessPath.getEmptyAccessPath());
+				}
+				else
+				{
+					return null;
+				}
 			}
 
 			@Override
