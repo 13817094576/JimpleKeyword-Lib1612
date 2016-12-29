@@ -850,11 +850,13 @@ class KeywordInspector
 			
 			//
 			// Traverse the methods in a class
-			Iterator<SootMethod> methodIter = curClass.getMethods().iterator();
-			while (methodIter.hasNext())
-			{
-				SootMethod m = methodIter.next();
-					
+			
+			// Clone the list of methods in order to
+			// avoid ConcurrentModificationException
+			List<SootMethod> methods = new ArrayList<SootMethod>(curClass.getMethods());
+			
+			for (SootMethod m : methods)
+			{					
 				// Skip method without active body
 				if (!SootUtil.ensureMethodActiveBody(m))
 				{

@@ -1,5 +1,6 @@
 package edu.fudan.JimpleKeyword;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -206,11 +207,13 @@ class RootCallerInspector
 		
 		//
 		// Scan the Jimple code of Activity Class
-		Iterator<SootMethod> methodIter = activityClass.methodIterator();
-		while (methodIter.hasNext())
-		{
-			SootMethod m = methodIter.next();
-			
+		
+		// Clone the list of methods in order to
+		// avoid ConcurrentModificationException
+		List<SootMethod> methods = new ArrayList<SootMethod>(activityClass.getMethods());
+		
+		for (SootMethod m : methods)
+		{			
 			//	
 			// Skip method without active body
 			if (!SootUtil.ensureMethodActiveBody(m))

@@ -1,5 +1,7 @@
 package edu.fudan.JimpleKeyword;
 
+import heros.InterproceduralCFG;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemNotFoundException;
@@ -12,13 +14,24 @@ import java.util.Set;
 import org.xmlpull.v1.XmlPullParserException;
 
 import soot.Scene;
+import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.ReturnStmt;
+import soot.jimple.Stmt;
+import soot.jimple.infoflow.Infoflow;
+import soot.jimple.infoflow.InfoflowConfiguration.CodeEliminationMode;
+import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
 import soot.jimple.infoflow.android.SetupApplication;
+import soot.jimple.infoflow.android.config.SootConfigForAndroid;
 import soot.jimple.infoflow.android.data.AndroidMethod;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
+import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
+import soot.jimple.infoflow.source.ISourceSinkManager;
+import soot.jimple.infoflow.source.SourceInfo;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 /**
@@ -134,27 +147,71 @@ public class Main
 			throw new RuntimeException("Unexpected XML Parsing Error on specified APK file", e);
 		}
 		
+		//
 		// Run info-flow analysis to construct CFG and Call Graph
-		InfoflowResults infoFlowResults = app.runInfoflow(new ResultsAvailableHandler() 
-		{
+		
+		//
+		// Here we HACKed infoflow computation
+		// in order to force FlowDroid always found source -> sink path.
+		
+		boolean forceAndroidJar = androidJarFile.isFile();
+		InfoflowAndroidConfiguration infoFlowConfig = new InfoflowAndroidConfiguration();
+		infoFlowConfig.setCodeEliminationMode(CodeEliminationMode.NoCodeElimination);
+		DefaultPathBuilderFactory pathBuilderFactory =
+				new DefaultPathBuilderFactory(infoFlowConfig.getPathBuilder(), infoFlowConfig.getComputeResultPaths());
+		Infoflow infoFlow = new Infoflow(androidJar, forceAndroidJar, null, pathBuilderFactory);
+		try {
+			infoFlow.setTaintWrapper(new EasyTaintWrapper(Config.CONFIG_FILE_TAINT_WRAPPER));
+		} catch (IOException e) {
+			//
+			// Unexpected error, Fail-fast
+			throw new RuntimeException("Unexpected IO Exception:", e);
+		}
+		
+		infoFlow.addResultsAvailableHandler(new ResultsAvailableHandler() {
+
 			@Override
 			public void onResultsAvailable(IInfoflowCFG arg0,
-					InfoflowResults arg1) 
-			{
-				//
-				// Save app CFG analysis results to app-wide program status
+					InfoflowResults arg1) {
+				// Save generated CFG
 				cfgOfApk = arg0;
-				
-			}	
+			}
+			
+		});
+		
+		infoFlow.setConfig(infoFlowConfig);
+		infoFlow.setSootConfig(new SootConfigForAndroid());
+		
+		//
+		// HACK: The SourceSinkManager is HACKED
+		// so that we force to give FlowDroid some dummy source -> sink path.
+		
+		infoFlow.computeInfoflow(apkFile, androidJar, app.getEntryPointCreator(), new ISourceSinkManager() {
+
+			@Override
+			public SourceInfo getSourceInfo(Stmt arg0,
+					InterproceduralCFG<Unit, SootMethod> arg1) {
+				// Force found source
+				return new SourceInfo(AccessPath.getEmptyAccessPath());
+			}
+
+			@Override
+			public boolean isSink(Stmt arg0,
+					InterproceduralCFG<Unit, SootMethod> arg1, AccessPath arg2) {
+				// Force found sink
+				return arg0 instanceof ReturnStmt;
+			}
+			
 		});
 		
 		//
 		// Check if we got CFG of app
 		if (cfgOfApk == null)
 		{
-			System.err.println("It's unbelievable that given APK doesn't contain any specified sources-sinks");
+			System.err.println("UNEXPECTED EXCEPTION: CFG of APK isn't generated.");
 			System.err.println("In current version of FlowDroid, without any sources-sinks, we can't got CFG of APK");
-			System.err.println("JimpleKeyword tool can't handle this case currently");
+			System.err.println("and we give FlowDroid some dummy source -> sink path currently");
+			System.err.println("It's strange that we didn't get CFG of APK.");
 			System.err.println("\nExecution Aborted.");
 			
 			System.exit(Config.EXIT_ERROR);
