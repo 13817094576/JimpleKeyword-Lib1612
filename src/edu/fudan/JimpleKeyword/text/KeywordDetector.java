@@ -1,4 +1,4 @@
-package edu.fudan.JimpleKeyword;
+package edu.fudan.JimpleKeyword.text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import edu.fudan.JimpleKeyword.util.StringUtil;
 	for detecting keywords in a given Jimple statement.
 
  */
-class KeywordDetector 
+public class KeywordDetector 
 {
 	//
 	// Data list for Jimple statement inspection
@@ -160,7 +160,7 @@ class KeywordDetector
 		The keyword returned is stemmed keyword.
 	
 	 */
-	String figureOutKeywordInJimple(String jimpleInString)
+	public String figureOutKeywordInJimple(String jimpleInString)
 	{
 		// We only interested in keywords in string constants.
 		List<String> stringConsts = extractStringConst(jimpleInString);
@@ -187,7 +187,7 @@ class KeywordDetector
 		Initializer of this class
 
 	 */
-	KeywordDetector(KeywordList keywordList)
+	public KeywordDetector(KeywordList keywordList)
 	{
 		//
 		// Initialize data list for Jimple inspection

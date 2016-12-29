@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.fudan.JimpleKeyword.io.KeywordList;
+import edu.fudan.JimpleKeyword.text.KeywordDetector;
 import edu.fudan.JimpleKeyword.util.IntTag;
 import edu.fudan.JimpleKeyword.util.SootUtil;
 import edu.fudan.JimpleKeyword.util.StringUtil;
