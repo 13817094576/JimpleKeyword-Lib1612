@@ -57,6 +57,10 @@ class KeywordInspector
 	private JimpleSelector jimpleSelector;
 	
 	//
+	// Interested info handlers
+	private HashMapStatHandler hashMapStatHandler;
+	
+	//
 	// Output statistic information
 	//
 	// The keywords in output log are stemmed keywords
@@ -69,8 +73,7 @@ class KeywordInspector
 	private Set<String> keywordsHit;
 	// We use Set to avoid duplicated <package, keyword> pair
 	private Set<String> keywordsInPackage;
-	// Jimple doesn't seem to duplicate
-	private List<String> jimpleUsingHashMap;
+
 	// Record raw Jimple statements with keywords for inspecting root classes
 	private List<JimpleHit> jimpleHit;
 	
@@ -110,22 +113,6 @@ class KeywordInspector
 	// and taint source statements.
 	// So that we can find out the starting point of data-flow analysis.
 	private List<KeyTaintedVar> keyTaintedVars = new ArrayList<KeyTaintedVar>();
-	
-	private boolean isStatementUsingHashMap(String unitInString)
-	{
-		//
-		// Here we only use "HashMap" since HashMap is an interface
-		// There LinkedHashMap etc.
-		if (unitInString.contains("HashMap")
-				&& (unitInString.contains("put(") || unitInString.contains("get(")))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
 	
 	// Integer in string matcher
 	// Not needed to initialize multiple times
@@ -209,24 +196,7 @@ class KeywordInspector
 		return thisObjIdList;
 	}
 	
-	/**
 
-		Inspect Jimple statements using HashMap class
-		and record relating information
-
-	 */
-	private void inspectHashMapStatement(Unit curUnit, String curUnitInString)
-	{
-		//
-		// Skip parameters validation currently.
-		
-		//
-		// Record statement using HashMap if needed
-		if (Config.recordJimpleUsingHashMap)
-		{
-			jimpleUsingHashMap.add(curUnitInString);
-		}
-	}
 	
 	/**
 	 
@@ -327,11 +297,11 @@ class KeywordInspector
 		
 		//
 		// Perform extra actions on statements using HashMap
-		if (isStatementUsingHashMap(curUnitInString))
+		if (hashMapStatHandler.isStatementUsingHashMap(curUnitInString))
 		{
 			//
 			// Record HashMap related statement if needed
-			inspectHashMapStatement(curUnit, curUnitInString);
+			hashMapStatHandler.inspectHashMapStatement(curUnit, curUnitInString);
 			
 			//
 			// Taint HashMap instance for data-flow analysis
@@ -634,6 +604,7 @@ class KeywordInspector
 		// Initialize utilities		
 		keywordDetector = new KeywordDetector(keywordList);
 		jimpleSelector = new JimpleSelector();
+		hashMapStatHandler = new HashMapStatHandler();
 		
 		//
 		// Initialize output information variables
@@ -641,7 +612,7 @@ class KeywordInspector
 		jimpleWithKeywords = new ArrayList<String>();
 		jimpleHit = new ArrayList<JimpleHit>();
 		keywordsHit = new HashSet<String>();
-		jimpleUsingHashMap = new ArrayList<String>();
+		
 		libraryPackageName = new HashSet<String>();
 		
 		keywordsInAppPackage = new HashSet<String>();
@@ -699,7 +670,7 @@ class KeywordInspector
 	
 	List<String> getJimpleUsingHashMap()
 	{
-		return jimpleUsingHashMap;
+		return hashMapStatHandler.getJimpleUsingHashMap();
 	}
 	
 	Set<String> getLibraryPackageName()
